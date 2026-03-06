@@ -485,12 +485,15 @@ textarea.field-input{min-height:80px;line-height:1.5}
 .vo-sync-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 
 /* Title card modal */
-#tc-modal .ed-card{max-width:360px}
-.tc-styles{display:flex;gap:6px;margin-bottom:12px}
-.tc-style{width:52px;height:36px;border-radius:var(--r-sm);border:2px solid transparent;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:10px;font-family:'Fredoka One',cursive;transition:border-color .15s}
+#tc-modal .ed-card{max-width:400px}
+.tc-tab-btn{font-family:'Fredoka One',cursive;font-size:13px;padding:4px 10px;
+  border-radius:var(--r-sm);color:var(--muted);border:1px solid transparent;transition:all .2s}
+.tc-tab-btn.active{color:var(--yellow);border-color:var(--yellow);background:rgba(251,191,36,.1)}
+.tc-styles{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+.tc-style{width:72px;height:50px;border-radius:var(--r-sm);border:2px solid var(--border);
+  cursor:pointer;overflow:hidden;position:relative;transition:border-color .15s;flex-shrink:0}
 .tc-style.active{border-color:var(--yellow)}
+.tc-style canvas{width:100%;height:100%;display:block;pointer-events:none}
 
 /* Frame fullscreen modal */
 #frm-modal{position:fixed;inset:0;z-index:5600;background:rgba(0,0,0,.95);
@@ -1044,26 +1047,78 @@ textarea.field-input{min-height:80px;line-height:1.5}
   <!-- TITLE CARD MODAL -->
   <div id="tc-modal" class="ed-modal hidden">
     <div class="ed-card">
-      <div class="ed-card-title">🖼 Titelkarte einfügen
-        <button onclick="closeTcModal()">✕</button>
+      <div class="ed-card-title">
+        <button class="tc-tab-btn active" id="tc-tab-title" onclick="switchTcTab('title')">🖼 Titelkarte</button>
+        <button class="tc-tab-btn" id="tc-tab-credits" onclick="switchTcTab('credits')">🎬 Abspann</button>
+        <button onclick="closeTcModal()" style="margin-left:auto;font-size:18px;color:var(--muted)">✕</button>
       </div>
-      <label class="field-label">TEXT</label>
-      <input id="tc-text" class="field-input" type="text" placeholder="Filmtitel…" style="margin-bottom:10px"/>
-      <div style="display:flex;gap:10px;margin-bottom:10px">
-        <div style="flex:1">
-          <label class="field-label">HINTERGRUND</label>
-          <input type="color" id="tc-bg" value="#000000"
-            style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+
+      <!-- TITLE CARD SECTION -->
+      <div id="tc-section-title">
+        <label class="field-label">TEXT</label>
+        <input id="tc-text" class="field-input" type="text" placeholder="Filmtitel…" style="margin-bottom:10px"/>
+        <label class="field-label" style="margin-bottom:6px">UNTERTITEL (optional)</label>
+        <input id="tc-sub" class="field-input" type="text" placeholder="Ein Film von…" style="margin-bottom:10px"/>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <div style="flex:1">
+            <label class="field-label">HINTERGRUND</label>
+            <input type="color" id="tc-bg" value="#000000"
+              style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+          </div>
+          <div style="flex:1">
+            <label class="field-label">TEXTFARBE</label>
+            <input type="color" id="tc-fg" value="#ffffff"
+              style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+          </div>
+          <div style="flex:1">
+            <label class="field-label">AKZENT</label>
+            <input type="color" id="tc-accent" value="#fbbf24"
+              style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+          </div>
         </div>
-        <div style="flex:1">
-          <label class="field-label">TEXTFARBE</label>
-          <input type="color" id="tc-fg" value="#ffffff"
-            style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+        <label class="field-label" style="margin-bottom:6px">STIL</label>
+        <div class="tc-styles" id="tc-styles"></div>
+        <label class="field-label" style="margin-bottom:6px">ANZAHL FRAMES</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <input type="range" class="prev-slider" id="tc-frames" min="1" max="48" value="8" style="flex:1"/>
+          <span class="prev-val" id="tc-frames-val">8</span>
         </div>
+        <button class="btn-primary sm" onclick="doInsertTitleCard()" style="width:100%">🖼 Einfügen</button>
       </div>
-      <label class="field-label">STIL</label>
-      <div class="tc-styles" id="tc-styles"></div>
-      <button class="btn-primary sm" onclick="doInsertTitleCard()" style="width:100%">🖼 Einfügen</button>
+
+      <!-- CREDITS SECTION -->
+      <div id="tc-section-credits" style="display:none">
+        <label class="field-label">FILMTITEL</label>
+        <input id="cr-title" class="field-input" type="text" placeholder="Mein Film" style="margin-bottom:8px"/>
+        <label class="field-label">CREDITS (eine Zeile pro Eintrag)</label>
+        <textarea id="cr-text" class="field-input" rows="5" style="margin-bottom:10px"
+          placeholder="Regie: Max Mustermann&#10;Kamera: Lena Beispiel&#10;Musik: …"></textarea>
+        <div style="display:flex;gap:10px;margin-bottom:12px">
+          <div style="flex:1">
+            <label class="field-label">HINTERGRUND</label>
+            <input type="color" id="cr-bg" value="#000000"
+              style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+          </div>
+          <div style="flex:1">
+            <label class="field-label">TEXTFARBE</label>
+            <input type="color" id="cr-fg" value="#ffffff"
+              style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+          </div>
+          <div style="flex:1">
+            <label class="field-label">AKZENT</label>
+            <input type="color" id="cr-accent" value="#fbbf24"
+              style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+          </div>
+        </div>
+        <label class="field-label" style="margin-bottom:6px">STIL</label>
+        <div class="tc-styles" id="cr-styles"></div>
+        <label class="field-label" style="margin-bottom:6px">FRAMES (Gesamtlänge)</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <input type="range" class="prev-slider" id="cr-frames" min="8" max="120" value="32" style="flex:1"/>
+          <span class="prev-val" id="cr-frames-val">32</span>
+        </div>
+        <button class="btn-primary sm" onclick="doInsertCredits()" style="width:100%">🎬 Abspann einfügen</button>
+      </div>
     </div>
   </div>
 
@@ -2607,15 +2662,138 @@ let voAudioDuration  = 0;
 let voBlob           = null;
 let voTimerInt       = null;
 let voTimerSec       = 0;
-let tcStyleIdx       = 0;
+let tcStyleIdx  = 0;
+let crStyleIdx  = 0;
+let tcMode      = 'title';
 
 const GROUP_COLORS = ['#a855f7','#2dd4bf','#f59e0b','#ef4444','#22c55e','#3b82f6'];
-const TC_STYLES = [
-  {font:'Fredoka One', align:'center', size:36, weight:'normal'},
-  {font:'serif',       align:'center', size:28, weight:'bold'},
-  {font:'monospace',   align:'left',   size:22, weight:'normal'},
-  {font:'sans-serif',  align:'center', size:32, weight:'bold'},
-  {font:'cursive',     align:'center', size:30, weight:'normal'},
+
+/* ── Card & Credits Style Definitions ─────── */
+const CARD_STYLES = [
+  { label:'Klassisch',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle=accent;ctx.fillRect(0,h*.08,w,3);ctx.fillRect(0,h*.92,w,3);
+      ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`bold ${Math.round(w*.1)}px sans-serif`;ctx.fillText(text,w/2,h*.46);
+      if(sub){ctx.font=`${Math.round(w*.045)}px sans-serif`;ctx.fillStyle=accent;ctx.fillText(sub,w/2,h*.62);}
+    }
+  },
+  { label:'Filmstreifen',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle=accent;
+      for(let i=0;i<8;i++){const x=i*(w/7.5)+w*.02;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,h*.04,w*.06,h*.08,4);else ctx.rect(x,h*.04,w*.06,h*.08);ctx.fill();}
+      for(let i=0;i<8;i++){const x=i*(w/7.5)+w*.02;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,h*.88,w*.06,h*.08,4);else ctx.rect(x,h*.88,w*.06,h*.08);ctx.fill();}
+      ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`bold ${Math.round(w*.1)}px 'Fredoka One',cursive`;ctx.fillText(text,w/2,h*.5);
+      if(sub){ctx.font=`${Math.round(w*.04)}px sans-serif`;ctx.fillStyle=accent;ctx.fillText(sub,w/2,h*.65);}
+    }
+  },
+  { label:'Retro',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+      const grd=ctx.createRadialGradient(w/2,h/2,h*.2,w/2,h/2,h*.8);
+      grd.addColorStop(0,'rgba(0,0,0,0)');grd.addColorStop(1,'rgba(0,0,0,0.55)');
+      ctx.fillStyle=grd;ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle=accent;ctx.lineWidth=w*.015;ctx.strokeRect(w*.04,h*.06,w*.92,h*.88);
+      ctx.strokeStyle=fg;ctx.lineWidth=w*.004;ctx.strokeRect(w*.055,h*.09,w*.89,h*.82);
+      ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`bold italic ${Math.round(w*.09)}px serif`;ctx.fillText(text.toUpperCase(),w/2,h*.46);
+      if(sub){ctx.font=`italic ${Math.round(w*.04)}px serif`;ctx.fillStyle=accent;ctx.fillText(sub,w/2,h*.63);}
+    }
+  },
+  { label:'Neon',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle=bg||'#0a0a1a';ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle='rgba(100,100,255,0.15)';ctx.lineWidth=1;
+      for(let x=0;x<w;x+=w/12){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+      for(let y=0;y<h;y+=h/8){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+      ctx.shadowColor=accent;ctx.shadowBlur=w*.04;
+      ctx.fillStyle=accent;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`bold ${Math.round(w*.1)}px monospace`;
+      for(let i=0;i<3;i++)ctx.fillText(text,w/2,h*.45);
+      ctx.shadowBlur=0;
+      if(sub){ctx.font=`${Math.round(w*.04)}px monospace`;ctx.fillStyle=fg;ctx.fillText(sub,w/2,h*.62);}
+    }
+  },
+  { label:'Minimalist',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+      ctx.fillStyle=accent;ctx.fillRect(w*.2,h*.5-2,w*.6,4);
+      ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='bottom';
+      ctx.font=`300 ${Math.round(w*.08)}px sans-serif`;ctx.fillText(text.toUpperCase(),w/2,h*.48);
+      if(sub){ctx.font=`${Math.round(w*.035)}px sans-serif`;ctx.textBaseline='top';ctx.fillStyle=accent;ctx.fillText(sub,w/2,h*.55);}
+    }
+  },
+  { label:'Polaroid',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle='#e8e0d0';ctx.fillRect(0,0,w,h);
+      const pw=w*.7,ph=h*.62,px=w*.15,py=h*.07;
+      ctx.fillStyle='#fff';ctx.fillRect(px-4,py-4,pw+8,ph+8);
+      ctx.fillStyle=bg;ctx.fillRect(px,py,pw,ph);
+      ctx.fillStyle='#fff';ctx.fillRect(px-4,py+ph+4,pw+8,h*.22);
+      ctx.fillStyle='#333';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`bold ${Math.round(w*.06)}px 'Fredoka One',cursive`;ctx.fillText(text,w/2,py+ph+h*.12);
+      if(sub){ctx.font=`${Math.round(w*.03)}px sans-serif`;ctx.fillStyle='#777';ctx.fillText(sub,w/2,py+ph+h*.19);}
+    }
+  },
+  { label:'Tafel',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle=bg||'#1a3a2a';ctx.fillRect(0,0,w,h);
+      for(let i=0;i<800;i++){ctx.fillStyle=`rgba(255,255,255,${Math.random()*.04})`;ctx.fillRect(Math.random()*w,Math.random()*h,2,1);}
+      ctx.setLineDash([w*.02,w*.01]);ctx.strokeStyle='rgba(255,255,255,0.5)';ctx.lineWidth=3;
+      ctx.strokeRect(w*.04,h*.06,w*.92,h*.88);ctx.setLineDash([]);
+      ctx.fillStyle='rgba(255,255,255,0.92)';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`bold ${Math.round(w*.1)}px sans-serif`;ctx.fillText(text,w/2,h*.45);
+      if(sub){ctx.font=`${Math.round(w*.04)}px sans-serif`;ctx.fillStyle=accent;ctx.fillText(sub,w/2,h*.62);}
+    }
+  },
+  { label:'Wellen',
+    draw(ctx,w,h,text,sub,fg,bg,accent){
+      ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle=accent;ctx.lineWidth=w*.008;
+      for(let j=0;j<3;j++){
+        ctx.beginPath();ctx.globalAlpha=1-j*.25;
+        for(let x=0;x<=w;x+=2){const y=h*.2+j*h*.06+Math.sin((x/w)*Math.PI*4)*h*.04;x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+        ctx.stroke();
+      }
+      ctx.globalAlpha=1;
+      ctx.fillStyle=fg;ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.font=`bold ${Math.round(w*.1)}px 'Fredoka One',cursive`;ctx.fillText(text,w/2,h*.57);
+      if(sub){ctx.font=`${Math.round(w*.04)}px sans-serif`;ctx.fillStyle=accent;ctx.fillText(sub,w/2,h*.72);}
+    }
+  },
+];
+
+const CREDITS_STYLES = [
+  { label:'Klassisch',
+    drawBg(ctx,w,h,bg,accent){ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.fillStyle=accent;ctx.fillRect(0,0,w,3);ctx.fillRect(0,h-3,w,3);}
+  },
+  { label:'Sterne',
+    drawBg(ctx,w,h,bg,accent){
+      ctx.fillStyle=bg||'#000';ctx.fillRect(0,0,w,h);
+      for(let i=0;i<80;i++){ctx.fillStyle=`rgba(255,255,255,${.3+Math.random()*.7})`;ctx.beginPath();ctx.arc(Math.random()*w,Math.random()*h,.5+Math.random()*1.5,0,Math.PI*2);ctx.fill();}
+    }
+  },
+  { label:'Neon',
+    drawBg(ctx,w,h,bg,accent){
+      ctx.fillStyle=bg||'#050510';ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle=accent+'44';ctx.lineWidth=1;
+      for(let x=0;x<w;x+=w/16){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+      for(let y=0;y<h;y+=h/10){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+    }
+  },
+  { label:'Retro',
+    drawBg(ctx,w,h,bg,accent){
+      ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);
+      ctx.strokeStyle=accent;ctx.lineWidth=w*.012;ctx.strokeRect(w*.03,h*.03,w*.94,h*.94);
+      ctx.strokeStyle=accent+'66';ctx.lineWidth=w*.005;ctx.strokeRect(w*.05,h*.05,w*.9,h*.9);
+    }
+  },
+  { label:'Minimal',
+    drawBg(ctx,w,h,bg,accent){ctx.fillStyle=bg;ctx.fillRect(0,0,w,h);ctx.fillStyle=accent;ctx.fillRect(w*.45,0,w*.1,3);}
+  },
 ];
 
 function persist() { scheduleSave(); }
@@ -3137,59 +3315,152 @@ function saveVoiceover() {
 }
 
 /* ── Title Card ───────────────────────────────*/
+/* ── Title Card / Credits ─────────────────────*/
+function switchTcTab(tab) {
+  tcMode = tab;
+  $('tc-section-title').style.display   = tab==='title'   ? 'block' : 'none';
+  $('tc-section-credits').style.display = tab==='credits' ? 'block' : 'none';
+  $('tc-tab-title').classList.toggle('active',   tab==='title');
+  $('tc-tab-credits').classList.toggle('active', tab==='credits');
+  if (tab==='title')   renderStylePicker('tc-styles', CARD_STYLES,    tcStyleIdx, i=>{tcStyleIdx=i; renderStylePicker('tc-styles',CARD_STYLES,tcStyleIdx,()=>{});});
+  if (tab==='credits') renderStylePicker('cr-styles', CREDITS_STYLES, crStyleIdx, i=>{crStyleIdx=i; renderStylePicker('cr-styles',CREDITS_STYLES,crStyleIdx,()=>{});});
+}
+
+function renderStylePicker(containerId, styles, activeIdx, onPick) {
+  const cont = $(containerId); if (!cont) return;
+  cont.innerHTML = '';
+  const bg     = $('tc-bg')?.value || $('cr-bg')?.value || '#000';
+  const fg     = $('tc-fg')?.value || $('cr-fg')?.value || '#fff';
+  const accent = $('tc-accent')?.value || $('cr-accent')?.value || '#fbbf24';
+  const text   = $('tc-text')?.value || $('cr-title')?.value || 'Titel';
+  const sub    = $('tc-sub')?.value  || '';
+
+  styles.forEach((st, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'tc-style' + (i === activeIdx ? ' active' : '');
+    wrap.title = st.label;
+    const cv = document.createElement('canvas');
+    cv.width = 144; cv.height = 100;
+    const ctx = cv.getContext('2d');
+    if (st.draw)   st.draw(ctx, 144, 100, text||'Titel', sub, fg, bg, accent);
+    if (st.drawBg) { st.drawBg(ctx,144,100,bg,accent); drawCreditsText(ctx,144,100,text,fg,accent,0); }
+    wrap.appendChild(cv);
+    // label
+    const lbl = document.createElement('div');
+    lbl.style.cssText='position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.55);color:#fff;font-size:7px;text-align:center;padding:1px;font-family:sans-serif;';
+    lbl.textContent = st.label;
+    wrap.appendChild(lbl);
+    wrap.addEventListener('click', () => onPick(i));
+    cont.appendChild(wrap);
+  });
+}
+
+function drawCreditsText(ctx, w, h, titleText, fg, accent, scrollY) {
+  // draws a simplified static preview of credits lines
+  ctx.fillStyle = accent; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font = `bold ${Math.round(w*.12)}px sans-serif`;
+  ctx.fillText(titleText||'Film', w/2, h/2 + scrollY);
+  ctx.fillStyle = fg+'aa'; ctx.font=`${Math.round(w*.06)}px sans-serif`;
+  ctx.fillText('Regie: …', w/2, h/2+w*.15+scrollY);
+}
+
 function insertTitleCard() {
+  tcMode = 'title';
   $('tc-modal').classList.remove('hidden');
-  $('tc-text').value = S.project.title || '';
-  renderTcStyles();
+  $('tc-text').value   = S.project.title || '';
+  $('tc-section-title').style.display   = 'block';
+  $('tc-section-credits').style.display = 'none';
+  $('tc-tab-title').classList.add('active');
+  $('tc-tab-credits').classList.remove('active');
+  renderStylePicker('tc-styles', CARD_STYLES, tcStyleIdx, i => { tcStyleIdx=i; renderStylePicker('tc-styles',CARD_STYLES,tcStyleIdx,()=>{}); });
+  // frame count slider
+  const sl = $('tc-frames');
+  if (sl) sl.addEventListener('input', () => { $('tc-frames-val').textContent = sl.value; });
+  // color pickers re-render previews
+  ['tc-bg','tc-fg','tc-accent'].forEach(id => {
+    const el = $(id); if(el) el.addEventListener('input', () => renderStylePicker('tc-styles',CARD_STYLES,tcStyleIdx,i=>{tcStyleIdx=i;renderStylePicker('tc-styles',CARD_STYLES,tcStyleIdx,()=>{});}));
+  });
 }
 function closeTcModal() { $('tc-modal').classList.add('hidden'); }
-function renderTcStyles() {
-  const cont = $('tc-styles'); if (!cont) return;
-  cont.innerHTML = '';
-  const bg = $('tc-bg') ? $('tc-bg').value : '#000';
-  const fg = $('tc-fg') ? $('tc-fg').value : '#fff';
-  TC_STYLES.forEach((st, i) => {
-    const el = document.createElement('div');
-    el.className = 'tc-style' + (i === tcStyleIdx ? ' active' : '');
-    el.style.background = bg; el.style.color = fg;
-    el.style.fontFamily = st.font; el.style.fontWeight = st.weight;
-    el.style.fontSize = '8px'; el.style.textAlign = st.align;
-    el.textContent = 'Aa';
-    el.addEventListener('click', () => { tcStyleIdx = i; renderTcStyles(); });
-    cont.appendChild(el);
-  });
-}
+
 function doInsertTitleCard() {
-  const text = ($('tc-text').value || 'Titel').trim();
-  const bg   = $('tc-bg').value;
-  const fg   = $('tc-fg').value;
-  const st   = TC_STYLES[tcStyleIdx];
-  const w = 640, h = 480;
-  const cv  = document.createElement('canvas');
-  cv.width = w; cv.height = h;
-  const ctx = cv.getContext('2d');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, w, h);
-  ctx.fillStyle = fg;
-  ctx.font = `${st.weight} ${st.size}px "${st.font}"`;
-  ctx.textAlign = st.align === 'left' ? 'left' : 'center';
-  ctx.textBaseline = 'middle';
-  const x = st.align === 'left' ? 40 : w/2;
-  // Wrap text
-  const words = text.split(' ');
-  let line = '', lines = [];
-  words.forEach(word => {
-    const test = line ? line + ' ' + word : word;
-    if (ctx.measureText(test).width > w - 80) { if (line) lines.push(line); line = word; }
-    else line = test;
-  });
-  if (line) lines.push(line);
-  const lineH = st.size * 1.3;
-  const startY = h/2 - (lines.length - 1) * lineH / 2;
-  lines.forEach((l, i) => ctx.fillText(l, x, startY + i * lineH));
-  addShot(cv.toDataURL('image/jpeg', 0.9));
+  const text   = ($('tc-text').value   || 'Titel').trim();
+  const sub    = ($('tc-sub').value    || '').trim();
+  const bg     = $('tc-bg').value;
+  const fg     = $('tc-fg').value;
+  const accent = $('tc-accent').value;
+  const frames = +($('tc-frames').value || 8);
+  const st     = CARD_STYLES[tcStyleIdx];
+  const w=640, h=480;
+  const cv = document.createElement('canvas'); cv.width=w; cv.height=h;
+  st.draw(cv.getContext('2d'), w, h, text, sub, fg, bg, accent);
+  const dataUrl = cv.toDataURL('image/jpeg', 0.92);
+  for (let i=0; i<frames; i++) addShot(dataUrl);
   closeTcModal();
-  showToast('🖼 Titelkarte eingefügt');
+  showToast(`🖼 Titelkarte eingefügt (${frames} Frames)`);
+}
+
+function doInsertCredits() {
+  const titleText = ($('cr-title').value || S.project.title || 'Film').trim();
+  const rawLines  = ($('cr-text').value  || '').split('\n').map(l=>l.trim()).filter(Boolean);
+  const bg        = $('cr-bg').value;
+  const fg        = $('cr-fg').value;
+  const accent    = $('cr-accent').value;
+  const totalFr   = +($('cr-frames').value || 32);
+  const st        = CREDITS_STYLES[crStyleIdx];
+  const w=640, h=480;
+
+  // Build full credits text as list: title line + empty + credit lines
+  const allLines = [titleText, '', ...rawLines, '', '', ''];
+
+  // Render each frame with a scroll offset
+  const lineH      = h * 0.11;
+  const totalScrollH = allLines.length * lineH + h;  // scroll from bottom to above top
+  const frames = [];
+
+  for (let f=0; f<totalFr; f++) {
+    const cv = document.createElement('canvas'); cv.width=w; cv.height=h;
+    const ctx = cv.getContext('2d');
+    st.drawBg(ctx, w, h, bg, accent);
+
+    // scroll position: start below bottom, end above top
+    const progress = f / (totalFr - 1);
+    const scrollY  = h - progress * totalScrollH;
+
+    allLines.forEach((line, li) => {
+      const y = scrollY + li * lineH;
+      if (y < -lineH || y > h + lineH) return;
+      const isTitle = li === 0;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      if (isTitle) {
+        ctx.fillStyle = accent;
+        ctx.font = `bold ${Math.round(w*.075)}px 'Fredoka One',cursive`;
+      } else if (!line) {
+        return;
+      } else if (line.includes(':')) {
+        // "Role: Name" — split styling
+        const colon = line.indexOf(':');
+        const role  = line.slice(0, colon+1);
+        const name  = line.slice(colon+1).trim();
+        ctx.fillStyle = fg + 'aa';
+        ctx.font = `${Math.round(w*.042)}px sans-serif`;
+        ctx.fillText(role, w/2, y);
+        ctx.fillStyle = fg;
+        ctx.font = `bold ${Math.round(w*.05)}px sans-serif`;
+        ctx.fillText(name, w/2, y + lineH*.42);
+        return;
+      } else {
+        ctx.fillStyle = fg;
+        ctx.font = `${Math.round(w*.048)}px sans-serif`;
+      }
+      ctx.fillText(line, w/2, y);
+    });
+    frames.push(cv.toDataURL('image/jpeg', 0.88));
+  }
+
+  frames.forEach(dataUrl => addShot(dataUrl));
+  closeTcModal();
+  showToast(`🎬 Abspann eingefügt (${frames.length} Frames)`);
 }
 
 /* ── Editor init ──────────────────────────────*/
@@ -3223,10 +3494,10 @@ function initEditor() {
       showFirstFrame();
     });
   }
-  // TC modal color pickers update previews
-  const tcBg = $('tc-bg'); const tcFg = $('tc-fg');
-  if (tcBg) tcBg.addEventListener('input', renderTcStyles);
-  if (tcFg) tcFg.addEventListener('input', renderTcStyles);
+  // TC modal color pickers — handled inside insertTitleCard/switchTcTab directly
+  // Credits frame slider
+  const crSl = $('cr-frames');
+  if (crSl) crSl.addEventListener('input', () => { $('cr-frames-val').textContent = crSl.value; });
   // Voiceover group select change
   const voSel = $('vo-group-sel');
   if (voSel) voSel.addEventListener('change', updateVoSyncInfo);
