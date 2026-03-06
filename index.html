@@ -3395,7 +3395,10 @@ function doInsertTitleCard() {
   const cv = document.createElement('canvas'); cv.width=w; cv.height=h;
   st.draw(cv.getContext('2d'), w, h, text, sub, fg, bg, accent);
   const dataUrl = cv.toDataURL('image/jpeg', 0.92);
-  for (let i=0; i<frames; i++) addShot(dataUrl);
+  const newShots = Array.from({length: frames}, () => ({ id: genShotId(), data: dataUrl, groupId: null }));
+  S.shots.unshift(...newShots);
+  idbSaveShots(S.shots);
+  renderStrip(); renderFrames(); updateShotCount();
   closeTcModal();
   showToast(`🖼 Titelkarte eingefügt (${frames} Frames)`);
 }
@@ -3458,7 +3461,11 @@ function doInsertCredits() {
     frames.push(cv.toDataURL('image/jpeg', 0.88));
   }
 
-  frames.forEach(dataUrl => addShot(dataUrl));
+  frames.forEach(dataUrl => {
+    S.shots.push({ id: genShotId(), data: dataUrl, groupId: null });
+  });
+  idbSaveShots(S.shots);
+  renderStrip(); renderFrames(); updateShotCount();
   closeTcModal();
   showToast(`🎬 Abspann eingefügt (${frames.length} Frames)`);
 }
