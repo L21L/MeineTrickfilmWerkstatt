@@ -368,6 +368,144 @@ textarea.field-input{min-height:80px;line-height:1.5}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
 
 /* ═══════════════════════════
+   EDITOR TAB
+   ═══════════════════════════ */
+#pg-edit{display:none;flex-direction:column;overflow:hidden;
+  padding-top:var(--topbar-h);padding-bottom:var(--nav-h)}
+#pg-edit.active{display:flex}
+
+/* Preview */
+#preview-wrap{position:relative;width:100%;background:#000;flex-shrink:0;overflow:hidden}
+#prev-cv{width:100%;display:block;max-height:50vh;object-fit:contain}
+#prev-play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:56px;height:56px;border-radius:50%;background:rgba(0,0,0,.55);
+  font-size:22px;display:flex;align-items:center;justify-content:center;
+  border:2px solid rgba(255,255,255,.3);transition:background .2s;color:#fff}
+#prev-play:hover{background:rgba(0,0,0,.8)}
+.prev-controls{padding:6px 10px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.prev-row{display:flex;align-items:center;gap:8px}
+.prev-label{font-size:11px;color:var(--muted);width:58px;flex-shrink:0;font-family:'Fredoka One',cursive}
+.prev-slider{flex:1;accent-color:var(--yellow)}
+.prev-val{font-family:'Fredoka One',cursive;font-size:12px;color:var(--yellow);min-width:36px;text-align:right}
+.prev-toggles{display:flex;gap:6px}
+.prev-tog{font-family:'Fredoka One',cursive;font-size:11px;padding:4px 10px;
+  border-radius:99px;border:1px solid var(--border);color:var(--muted);
+  background:var(--s2);transition:all .2s;cursor:pointer}
+.prev-tog.on{border-color:var(--yellow);color:var(--yellow);background:rgba(251,191,36,.1)}
+
+/* Toolbar */
+.edit-toolbar{padding:6px 8px;background:var(--surface);border-bottom:1px solid var(--border);
+  display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+.edit-tool-row{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;flex-wrap:nowrap}
+.edit-tool-row::-webkit-scrollbar{display:none}
+.etb{flex-shrink:0;background:var(--s2);border:1px solid var(--border);
+  color:var(--text);font-family:'Fredoka One',cursive;font-size:11px;
+  padding:6px 10px;border-radius:var(--r-sm);transition:all .18s;white-space:nowrap;cursor:pointer}
+.etb:hover{border-color:var(--yellow);color:var(--yellow)}
+.etb:active{transform:scale(.93)}
+.etb.danger:hover{border-color:var(--red);color:var(--red)}
+
+/* Info bar */
+.edit-info{padding:4px 12px;font-size:11px;color:var(--muted);
+  font-family:'Fredoka One',cursive;background:var(--bg);flex-shrink:0;
+  display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+
+/* Frame grid */
+#frm-scroll{flex:1;overflow-y:auto;overflow-x:hidden;padding:8px;-webkit-overflow-scrolling:touch}
+#frm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px}
+.frm-empty{grid-column:1/-1;text-align:center;padding:32px 16px;
+  color:var(--muted);font-family:'Fredoka One',cursive;font-size:14px}
+
+/* Frame card */
+.frm-card{position:relative;border-radius:var(--r-sm);overflow:hidden;
+  border:2px solid transparent;transition:border-color .15s,transform .1s;
+  cursor:pointer;background:var(--s2);aspect-ratio:4/3;user-select:none}
+.frm-card.selected{border-color:var(--yellow);box-shadow:0 0 0 1px rgba(251,191,36,.3)}
+.frm-card.drag-over{border-color:var(--teal);transform:scale(1.04)}
+.frm-card img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.frm-num{position:absolute;bottom:2px;left:3px;font-family:'Fredoka One',cursive;
+  font-size:9px;color:rgba(255,255,255,.85);text-shadow:0 1px 2px rgba(0,0,0,.8);line-height:1}
+.frm-gbadge{position:absolute;top:3px;left:3px;width:10px;height:10px;
+  border-radius:50%;border:1.5px solid rgba(255,255,255,.5)}
+.frm-vo{position:absolute;top:2px;right:3px;font-size:10px;line-height:1}
+.frm-sel-overlay{position:absolute;inset:0;background:rgba(251,191,36,.18);
+  display:none;align-items:center;justify-content:center}
+.frm-card.selected .frm-sel-overlay{display:flex}
+
+/* Group bar */
+#group-bar{display:flex;gap:6px;overflow-x:auto;padding:6px 8px;
+  background:var(--surface);border-top:1px solid var(--border);
+  flex-shrink:0;scrollbar-width:none;min-height:40px;align-items:center}
+#group-bar::-webkit-scrollbar{display:none}
+.gb-empty{font-size:12px;color:var(--muted);font-family:'Fredoka One',cursive}
+.grp-pill{display:flex;align-items:center;gap:5px;padding:5px 10px;border-radius:99px;
+  border:1.5px solid transparent;font-family:'Fredoka One',cursive;font-size:12px;
+  cursor:pointer;flex-shrink:0;transition:all .18s;background:var(--s2)}
+.grp-pill:hover{filter:brightness(1.2)}
+.grp-pill.active-grp{border-color:var(--yellow)}
+.grp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.grp-del{font-size:10px;opacity:.6;margin-left:2px}
+.grp-del:hover{opacity:1}
+
+/* ── Modals shared ── */
+.ed-modal{position:fixed;inset:0;z-index:5500;background:rgba(6,9,20,.92);
+  display:flex;align-items:center;justify-content:center;padding:16px;
+  backdrop-filter:blur(8px)}
+.ed-modal.hidden{display:none}
+.ed-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:20px;width:100%;max-width:380px;max-height:90vh;overflow-y:auto;
+  box-shadow:0 16px 48px rgba(0,0,0,.6)}
+.ed-card-title{font-family:'Fredoka One',cursive;font-size:18px;color:var(--yellow);
+  margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.ed-card-title button{margin-left:auto;font-size:18px;color:var(--muted)}
+.ed-card-title button:hover{color:var(--text)}
+
+/* Voiceover modal */
+#vo-modal .ed-card{max-width:420px}
+.vo-group-select{width:100%;background:var(--s2);border:1px solid var(--border);
+  border-radius:var(--r-sm);padding:8px 12px;color:var(--text);font-size:14px;
+  margin-bottom:12px;outline:none}
+.vo-group-select:focus{border-color:var(--yellow)}
+.vo-viz{height:40px;background:var(--s2);border-radius:var(--r-sm);margin-bottom:10px;
+  display:flex;align-items:center;justify-content:center;gap:2px;overflow:hidden}
+.vo-bar{width:4px;border-radius:2px;background:var(--yellow);min-height:3px;transition:height .05s}
+.vo-timer{font-family:'Fredoka One',cursive;font-size:28px;color:var(--yellow);
+  text-align:center;margin:6px 0}
+.vo-btns{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.vo-btn{flex:1;min-width:80px;background:var(--s2);border:1px solid var(--border);
+  color:var(--text);font-family:'Fredoka One',cursive;font-size:13px;
+  padding:9px 8px;border-radius:var(--r-sm);transition:all .2s;text-align:center}
+.vo-btn:hover{border-color:var(--yellow);color:var(--yellow)}
+.vo-btn.rec{background:rgba(239,68,68,.2);border-color:var(--red);color:var(--red)}
+.vo-btn.rec:hover{background:rgba(239,68,68,.35)}
+.vo-sync-info{background:var(--s2);border-radius:var(--r-sm);padding:10px 12px;
+  font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6}
+.vo-sync-warn{color:#fb923c;margin-top:4px}
+.vo-sync-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+
+/* Title card modal */
+#tc-modal .ed-card{max-width:360px}
+.tc-styles{display:flex;gap:6px;margin-bottom:12px}
+.tc-style{width:52px;height:36px;border-radius:var(--r-sm);border:2px solid transparent;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-family:'Fredoka One',cursive;transition:border-color .15s}
+.tc-style.active{border-color:var(--yellow)}
+
+/* Frame fullscreen modal */
+#frm-modal{position:fixed;inset:0;z-index:5600;background:rgba(0,0,0,.95);
+  display:flex;align-items:center;justify-content:center}
+#frm-modal.hidden{display:none}
+#frm-modal img{max-width:100%;max-height:100%;object-fit:contain}
+#frm-modal-close{position:absolute;top:16px;right:16px;color:#fff;
+  font-size:28px;background:rgba(0,0,0,.5);border-radius:50%;
+  width:40px;height:40px;display:flex;align-items:center;justify-content:center}
+
+/* ── Scrollbar for frm-scroll ── */
+#frm-scroll::-webkit-scrollbar{width:4px}
+#frm-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* ═══════════════════════════
    KAMERA TAB
    ═══════════════════════════ */
 #pg-cam{display:none;flex-direction:column;gap:0;padding:var(--topbar-h) 0 var(--nav-h)}
@@ -807,13 +945,133 @@ textarea.field-input{min-height:80px;line-height:1.5}
 
   <!-- EDITOR -->
   <section id="pg-edit" class="page" aria-label="Editor">
-    <div class="placeholder-card">
-      <div class="ph-icon">🎞️</div>
-      <h1 class="ph-title">Editor</h1>
-      <p class="ph-sub">Wird in Schritt 4 gebaut</p>
-      <div class="ph-badge">Kommt bald</div>
+
+    <!-- Preview Player -->
+    <div id="preview-wrap">
+      <canvas id="prev-cv"></canvas>
+      <button id="prev-play" onclick="togglePrev()">▶</button>
     </div>
+
+    <!-- Preview Controls -->
+    <div class="prev-controls">
+      <div class="prev-row">
+        <span class="prev-label">⚡ FPS</span>
+        <input type="range" class="prev-slider" id="fps-slider" min="2" max="24" value="8"/>
+        <span class="prev-val" id="fps-val">8 fps</span>
+      </div>
+      <div class="prev-row">
+        <span class="prev-label">☀️ Helligkeit</span>
+        <input type="range" class="prev-slider" id="bright-slider" min="-100" max="100" value="0"/>
+        <span class="prev-val" id="bright-val">0</span>
+      </div>
+      <div class="prev-row">
+        <span class="prev-label">◑ Kontrast</span>
+        <input type="range" class="prev-slider" id="contrast-slider" min="-100" max="100" value="0"/>
+        <span class="prev-val" id="contrast-val">0</span>
+      </div>
+      <div class="prev-row">
+        <div class="prev-toggles">
+          <button class="prev-tog" id="tog-fadein"  onclick="togFade('in')">⬛→🌅 Fade in</button>
+          <button class="prev-tog" id="tog-fadeout" onclick="togFade('out')">🌅→⬛ Fade out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="edit-toolbar">
+      <div class="edit-tool-row">
+        <button class="etb" onclick="selAll()">☑ Alle</button>
+        <button class="etb" onclick="deselAll()">☐ Keine</button>
+        <button class="etb danger" onclick="delSel()">🗑 Löschen</button>
+        <button class="etb" onclick="dupSel()">📋 Duplizieren</button>
+        <button class="etb" onclick="revFrames()">↔ Umkehren</button>
+        <button class="etb" onclick="undoLastFrame()">↩ Rückgängig</button>
+        <button class="etb" onclick="rotSel()">🔄 Drehen</button>
+      </div>
+      <div class="edit-tool-row">
+        <button class="etb" onclick="createGroup()">📁 Gruppe erstellen</button>
+        <button class="etb" onclick="dissolveGroup()">📂 Gruppe auflösen</button>
+        <button class="etb" onclick="openVoiceoverModal()">🎙 Voiceover</button>
+        <button class="etb" onclick="insertTitleCard()">🖼 Titelkarte</button>
+        <button class="etb" onclick="goPage('pg-exp')">📤 Exportieren</button>
+      </div>
+    </div>
+
+    <!-- Info bar -->
+    <div class="edit-info" id="edit-info">0 Frames · 0 Gruppen · 0.0s</div>
+
+    <!-- Frame Grid -->
+    <div id="frm-scroll">
+      <div id="frm-grid">
+        <div class="frm-empty" id="frm-empty">Noch keine Fotos – geh zum 📷 Kamera-Tab!</div>
+      </div>
+    </div>
+
+    <!-- Group bar -->
+    <div id="group-bar">
+      <span class="gb-empty" id="gb-empty">Keine Gruppen – markiere Frames und drücke 📁</span>
+    </div>
+
   </section>
+
+  <!-- VOICEOVER MODAL -->
+  <div id="vo-modal" class="ed-modal hidden">
+    <div class="ed-card">
+      <div class="ed-card-title">🎙 Voiceover aufnehmen
+        <button onclick="closeVoModal()">✕</button>
+      </div>
+      <select class="vo-group-select" id="vo-group-sel"></select>
+      <div id="vo-no-groups" style="display:none;color:var(--muted);font-size:13px;margin-bottom:10px">
+        Erstelle zuerst eine Gruppe (Frames markieren → 📁 Gruppe erstellen)
+      </div>
+      <div class="vo-viz" id="vo-viz"></div>
+      <div class="vo-timer" id="vo-timer">0:00</div>
+      <div class="vo-btns">
+        <button class="vo-btn rec" id="vo-rec-btn"  onclick="startVoRec()">⏺ Aufnehmen</button>
+        <button class="vo-btn"     id="vo-stop-btn" onclick="stopVoRec()" style="display:none">⏹ Stopp</button>
+        <button class="vo-btn"     id="vo-play-btn" onclick="playVoRec()" style="display:none">▶ Anhören</button>
+        <button class="vo-btn"     id="vo-del-btn"  onclick="delVoRec()"  style="display:none">🗑 Löschen</button>
+      </div>
+      <div class="vo-sync-info" id="vo-sync-info" style="display:none"></div>
+      <div class="vo-sync-btns" id="vo-sync-btns" style="display:none">
+        <button class="etb" onclick="voAdjustFrames()">⚡ Frames anpassen</button>
+        <button class="etb" onclick="voTrimAudio()">✂️ Voiceover kürzen</button>
+      </div>
+      <button class="btn-primary sm" id="vo-save-btn" onclick="saveVoiceover()" style="display:none;width:100%">✅ Speichern</button>
+    </div>
+  </div>
+
+  <!-- TITLE CARD MODAL -->
+  <div id="tc-modal" class="ed-modal hidden">
+    <div class="ed-card">
+      <div class="ed-card-title">🖼 Titelkarte einfügen
+        <button onclick="closeTcModal()">✕</button>
+      </div>
+      <label class="field-label">TEXT</label>
+      <input id="tc-text" class="field-input" type="text" placeholder="Filmtitel…" style="margin-bottom:10px"/>
+      <div style="display:flex;gap:10px;margin-bottom:10px">
+        <div style="flex:1">
+          <label class="field-label">HINTERGRUND</label>
+          <input type="color" id="tc-bg" value="#000000"
+            style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+        </div>
+        <div style="flex:1">
+          <label class="field-label">TEXTFARBE</label>
+          <input type="color" id="tc-fg" value="#ffffff"
+            style="width:100%;height:36px;border:1px solid var(--border);border-radius:var(--r-sm);cursor:pointer"/>
+        </div>
+      </div>
+      <label class="field-label">STIL</label>
+      <div class="tc-styles" id="tc-styles"></div>
+      <button class="btn-primary sm" onclick="doInsertTitleCard()" style="width:100%">🖼 Einfügen</button>
+    </div>
+  </div>
+
+  <!-- FRAME FULLSCREEN MODAL -->
+  <div id="frm-modal" class="hidden" onclick="closeFrmModal()">
+    <button id="frm-modal-close" onclick="closeFrmModal()">✕</button>
+    <img id="frm-modal-img" src="" alt=""/>
+  </div>
 
   <!-- MUSIK -->
   <section id="pg-mus" class="page" aria-label="Musik">
@@ -864,6 +1122,7 @@ textarea.field-input{min-height:80px;line-height:1.5}
    ═══════════════════════════════════════════════ */
 const S = {
   shots:[], fps:8, quality:'480p', format:'webm', vol:0.8, music:null,
+  groups:[],
   project:{
     title:'Mein Film', about:'', beg:'', ten:'', end:'',
     figures:[], scenes:[], progress:[0,0,0,0,0,0],
@@ -1027,7 +1286,14 @@ let saveTimer = null;
 function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    try { localStorage.setItem('tfw-state', JSON.stringify(S)); } catch(e){}
+    try {
+      localStorage.setItem('tfw-state', JSON.stringify({
+        fps: S.fps, quality: S.quality, format: S.format,
+        vol: S.vol, music: S.music,
+        project: S.project,
+        groups: S.groups
+      }));
+    } catch(e){}
   }, 300);
 }
 function loadState() {
@@ -1035,10 +1301,8 @@ function loadState() {
     const raw = localStorage.getItem('tfw-state');
     if (!raw) return;
     const saved = JSON.parse(raw);
-    // Deep merge project
     if (saved.project) {
       Object.assign(S.project, saved.project);
-      // ensure weekplan exists
       if (!S.project.weekplan) {
         S.project.weekplan = [
           {day:'Montag',task:'',done:false},{day:'Dienstag',task:'',done:false},
@@ -1050,8 +1314,19 @@ function loadState() {
     }
     if (saved.fps)     S.fps     = saved.fps;
     if (saved.quality) S.quality = saved.quality;
-    if (saved.shots)   S.shots   = saved.shots;
+    if (saved.groups)  S.groups  = saved.groups;
   } catch(e){}
+}
+function migrateShots() {
+  // Add IDs to shots that don't have them (migration from old format)
+  S.shots = S.shots.map((s, i) => {
+    if (typeof s === 'string') {
+      return { id: 'f' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2), data: s, groupId: null };
+    }
+    if (!s.id) s.id = 'f' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2);
+    if (s.groupId === undefined) s.groupId = null;
+    return s;
+  });
 }
 
 /* ═══════════════════════════════════════════════
@@ -1865,7 +2140,7 @@ function drawOnion() {
     ctx.drawImage(img, sx, sy, sw, sh);
     ctx.globalAlpha = 1;
   };
-  img.src = S.shots[S.shots.length - 1];
+  img.src = (S.shots[S.shots.length - 1].data || S.shots[S.shots.length - 1]);
 }
 function clearOnion() {
   const cv = $('onion-cv');
@@ -2003,10 +2278,8 @@ function loadGsBg(input) {
 function startGsLoop() {
   const vid  = $('cam-vid');
   const gsCv = $('gs-cv');
-  const box  = $('cam-box');
 
   function coverFit(srcW, srcH, dstW, dstH) {
-    // Returns {sx,sy,sw,sh} source crop so that the result fills dst like object-fit:cover
     const srcR = srcW / srcH;
     const dstR = dstW / dstH;
     let sw, sh, sx = 0, sy = 0;
@@ -2020,46 +2293,63 @@ function startGsLoop() {
 
   function loop() {
     if (!gsOn) return;
-    const dstW = box.offsetWidth;
-    const dstH = box.offsetHeight;
-    gsCv.width  = dstW;
-    gsCv.height = dstH;
+
+    // Use the video element's actual rendered rect — this matches what the user sees
+    const rect = vid.getBoundingClientRect();
+    const dstW = Math.round(rect.width);
+    const dstH = Math.round(rect.height);
+    if (!dstW || !dstH) { gsRafId = requestAnimationFrame(loop); return; }
+
+    // Only resize canvas when dimensions change (avoids flicker)
+    if (gsCv.width !== dstW || gsCv.height !== dstH) {
+      gsCv.width  = dstW;
+      gsCv.height = dstH;
+      // Position canvas exactly over the video element
+      gsCv.style.width  = dstW + 'px';
+      gsCv.style.height = dstH + 'px';
+    }
+
     const ctx = gsCv.getContext('2d');
+    const vW  = vid.videoWidth  || dstW;
+    const vH  = vid.videoHeight || dstH;
 
-    const vW = vid.videoWidth  || dstW;
-    const vH = vid.videoHeight || dstH;
-
-    // Work at display size to avoid distortion
+    // Offscreen canvas at display size
     const tmp = document.createElement('canvas');
     tmp.width  = dstW;
     tmp.height = dstH;
     const tc = tmp.getContext('2d');
 
-    // Draw video with cover-fit crop
+    // Draw video with cover-crop to match object-fit:cover
     const {sx, sy, sw, sh} = coverFit(vW, vH, dstW, dstH);
     tc.drawImage(vid, sx, sy, sw, sh, 0, 0, dstW, dstH);
 
     // Chroma key
-    const id   = tc.getImageData(0, 0, dstW, dstH);
-    const data = id.data;
+    const imgData = tc.getImageData(0, 0, dstW, dstH);
+    const data    = imgData.data;
     const {r:kr, g:kg, b:kb} = gsColor;
-    const thresh = gsThreshold * 2.55;
+    const thresh  = gsThreshold * 2.55;
     for (let i = 0; i < data.length; i += 4) {
-      const dr = Math.abs(data[i]-kr), dg = Math.abs(data[i+1]-kg), db = Math.abs(data[i+2]-kb);
+      const dr = Math.abs(data[i]-kr);
+      const dg = Math.abs(data[i+1]-kg);
+      const db = Math.abs(data[i+2]-kb);
       if (dr < thresh && dg < thresh && db < thresh) data[i+3] = 0;
     }
-    tc.putImageData(id, 0, 0);
+    tc.putImageData(imgData, 0, 0);
 
-    // Draw background (cover-fit)
+    // Draw background
     if (gsBgImage) {
-      const {sx:bsx, sy:bsy, sw:bsw, sh:bsh} = coverFit(gsBgImage.naturalWidth, gsBgImage.naturalHeight, dstW, dstH);
+      const {sx:bsx, sy:bsy, sw:bsw, sh:bsh} = coverFit(
+        gsBgImage.naturalWidth || gsBgImage.width,
+        gsBgImage.naturalHeight || gsBgImage.height,
+        dstW, dstH
+      );
       ctx.drawImage(gsBgImage, bsx, bsy, bsw, bsh, 0, 0, dstW, dstH);
     } else {
       ctx.fillStyle = '#1a1a2e';
       ctx.fillRect(0, 0, dstW, dstH);
     }
 
-    // Composite keyed frame on top
+    // Composite keyed frame
     ctx.drawImage(tmp, 0, 0);
     gsRafId = requestAnimationFrame(loop);
   }
@@ -2118,11 +2408,16 @@ function doSnap() {
   flashEffect();
   playBeep(900, 0.05);
 }
+function genShotId() {
+  return 'f' + Date.now() + '_' + Math.random().toString(36).slice(2,7);
+}
 function addShot(dataUrl) {
-  S.shots.push(dataUrl);
+  const shot = { id: genShotId(), data: dataUrl, groupId: null };
+  S.shots.push(shot);
   idbSaveShots(S.shots);
   renderStrip();
   updateShotCount();
+  renderFrames();
   if (onionOn) drawOnion();
 }
 
@@ -2133,6 +2428,7 @@ function undoShot() {
   idbSaveShots(S.shots);
   renderStrip();
   updateShotCount();
+  renderFrames();
   if (onionOn) drawOnion();
   showToast('↩ Letztes Foto gelöscht');
 }
@@ -2143,6 +2439,7 @@ function clearAllShots() {
   idbSaveShots(S.shots);
   renderStrip();
   updateShotCount();
+  renderFrames();
   clearOnion();
   showToast('🗑 Alle Fotos gelöscht');
 }
@@ -2162,14 +2459,14 @@ function onImport(e) {
 function renderStrip() {
   const strip = $('filmstrip');
   const empty = $('strip-empty');
-  // Remove old thumbs
   strip.querySelectorAll('.strip-thumb').forEach(t => t.remove());
   if (S.shots.length === 0) {
     if (empty) empty.style.display = 'block';
     return;
   }
   if (empty) empty.style.display = 'none';
-  S.shots.forEach((src, i) => {
+  S.shots.forEach((shot, i) => {
+    const src = shot.data || shot;
     const thumb = document.createElement('div');
     thumb.className = 'strip-thumb';
     thumb.innerHTML = `
@@ -2179,14 +2476,21 @@ function renderStrip() {
     `;
     strip.appendChild(thumb);
   });
-  // Scroll to end
   requestAnimationFrame(() => { strip.scrollLeft = strip.scrollWidth; });
 }
 function deleteShotAt(i) {
+  const shot = S.shots[i];
+  // Remove from groups
+  if (shot && shot.groupId) {
+    const grp = S.groups.find(g => g.id === shot.groupId);
+    if (grp) grp.frameIds = grp.frameIds.filter(id => id !== shot.id);
+  }
   S.shots.splice(i, 1);
   idbSaveShots(S.shots);
   renderStrip();
   updateShotCount();
+  renderFrames();
+  renderGroupBar();
   if (onionOn) drawOnion();
 }
 
@@ -2194,9 +2498,12 @@ function deleteShotAt(i) {
 function updateShotCount() {
   const cnt = S.shots.length;
   $('shot-cnt').textContent = `${cnt} Foto${cnt === 1 ? '' : 's'}`;
-  // Scene progress (simple: all shots for scene 1 for now)
-  const pct = Math.min(100, Math.round(cnt / sceneTargetPhotos * 100));
-  $('spb-label').textContent = `Szene ${currentScene+1} · ${cnt}/${sceneTargetPhotos}`;
+  // Scene: which scene are we in, and how many shots in this scene
+  currentScene      = Math.floor(cnt / sceneTargetPhotos);
+  const shotsInScene = cnt % sceneTargetPhotos; // shots taken in current scene so far
+  const displayScene = currentScene + 1;        // 1-based for display
+  const pct = Math.round(shotsInScene / sceneTargetPhotos * 100);
+  $('spb-label').textContent = `Szene ${displayScene} · ${shotsInScene}/${sceneTargetPhotos}`;
   $('spb-fill').style.width  = pct + '%';
 }
 
@@ -2270,8 +2577,663 @@ function initCamTab() {
   // Load shots from IDB
   idbLoadShots(shots => {
     S.shots = shots;
+    migrateShots();
     renderStrip();
     updateShotCount();
+    renderFrames();
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   EDITOR — Globals
+   ═══════════════════════════════════════════════ */
+let selFrames        = new Set();
+let prevRunning      = false;
+let prevIdx          = 0;
+let prevGroupsPlayed = new Set();
+let prevTimer        = null;
+let brightnessVal    = 0;
+let contrastVal      = 0;
+let fadeIn           = false;
+let fadeOut          = false;
+let dragSrc          = null;
+let voRecorder       = null;
+let voChunks         = [];
+let voStream         = null;
+let voAnalyser       = null;
+let voRafId          = null;
+let voTargetGroupId  = null;
+let voAudioDuration  = 0;
+let voBlob           = null;
+let voTimerInt       = null;
+let voTimerSec       = 0;
+let tcStyleIdx       = 0;
+
+const GROUP_COLORS = ['#a855f7','#2dd4bf','#f59e0b','#ef4444','#22c55e','#3b82f6'];
+const TC_STYLES = [
+  {font:'Fredoka One', align:'center', size:36, weight:'normal'},
+  {font:'serif',       align:'center', size:28, weight:'bold'},
+  {font:'monospace',   align:'left',   size:22, weight:'normal'},
+  {font:'sans-serif',  align:'center', size:32, weight:'bold'},
+  {font:'cursive',     align:'center', size:30, weight:'normal'},
+];
+
+function persist() { scheduleSave(); }
+
+/* ── renderFrames ─────────────────────────────*/
+function renderFrames() {
+  const grid  = $('frm-grid');
+  const empty = $('frm-empty');
+  if (!grid) return;
+  grid.querySelectorAll('.frm-card').forEach(c => c.remove());
+
+  if (S.shots.length === 0) {
+    if (empty) empty.style.display = 'block';
+    updateEditInfo();
+    renderGroupBar();
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+
+  S.shots.forEach((shot, i) => {
+    const grp = shot.groupId ? S.groups.find(g => g.id === shot.groupId) : null;
+    const hasVo = grp && grp.voiceover;
+    const card  = document.createElement('div');
+    card.className = 'frm-card' + (selFrames.has(shot.id) ? ' selected' : '');
+    card.dataset.id  = shot.id;
+    card.dataset.idx = i;
+    card.innerHTML = `
+      <img src="${shot.data}" alt="${i+1}" draggable="false"/>
+      <span class="frm-num">${i+1}</span>
+      ${grp ? `<span class="frm-gbadge" style="background:${grp.color}" title="${grp.name}"></span>` : ''}
+      ${hasVo ? '<span class="frm-vo">🎙</span>' : ''}
+      <div class="frm-sel-overlay">✓</div>
+    `;
+    // Click → toggle select, double → fullscreen
+    let lastTap = 0;
+    card.addEventListener('pointerdown', e => {
+      const now = Date.now();
+      if (now - lastTap < 350) { openFrmModal(shot.data); return; }
+      lastTap = now;
+    });
+    card.addEventListener('click', () => {
+      if (selFrames.has(shot.id)) selFrames.delete(shot.id);
+      else selFrames.add(shot.id);
+      card.classList.toggle('selected', selFrames.has(shot.id));
+      card.querySelector('.frm-sel-overlay').style.display = selFrames.has(shot.id) ? 'flex' : 'none';
+    });
+    // Drag & drop
+    card.draggable = true;
+    card.addEventListener('dragstart', e => { dragSrc = i; card.style.opacity='.4'; e.dataTransfer.effectAllowed='move'; });
+    card.addEventListener('dragend',   ()  => { card.style.opacity='1'; });
+    card.addEventListener('dragover',  e => { e.preventDefault(); card.classList.add('drag-over'); });
+    card.addEventListener('dragleave', ()  => card.classList.remove('drag-over'));
+    card.addEventListener('drop',      e => {
+      e.preventDefault(); card.classList.remove('drag-over');
+      if (dragSrc === null || dragSrc === i) return;
+      const moved = S.shots.splice(dragSrc, 1)[0];
+      S.shots.splice(i, 0, moved);
+      dragSrc = null;
+      idbSaveShots(S.shots);
+      renderFrames(); renderStrip();
+    });
+    // Touch drag
+    let touchDragIdx = null;
+    card.addEventListener('touchstart', e => { touchDragIdx = i; }, {passive:true});
+    card.addEventListener('touchend', e => {
+      if (touchDragIdx === null) return;
+      const touch = e.changedTouches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const target = el && el.closest('.frm-card');
+      if (target && target !== card) {
+        const ti = +target.dataset.idx;
+        const moved = S.shots.splice(touchDragIdx, 1)[0];
+        S.shots.splice(ti, 0, moved);
+        idbSaveShots(S.shots);
+        renderFrames(); renderStrip();
+      }
+      touchDragIdx = null;
+    }, {passive:true});
+
+    grid.appendChild(card);
+  });
+  updateEditInfo();
+  renderGroupBar();
+}
+
+function updateEditInfo() {
+  const el = $('edit-info');
+  if (!el) return;
+  const n = S.shots.length;
+  const g = S.groups.length;
+  const secs = (n / (S.fps||8)).toFixed(1);
+  const voTotal = S.groups.reduce((sum,grp) => sum + (grp.voiceoverDuration||0), 0);
+  el.textContent = `${n} Frame${n!==1?'s':''} · ${g} Gruppe${g!==1?'n':''} · ${secs}s bei ${S.fps}fps`
+    + (voTotal > 0 ? ` · 🎙 ${voTotal.toFixed(1)}s Voiceover` : '');
+}
+
+/* ── Frame fullscreen ─────────────────────────*/
+function openFrmModal(src) {
+  $('frm-modal-img').src = src;
+  $('frm-modal').classList.remove('hidden');
+}
+function closeFrmModal() { $('frm-modal').classList.add('hidden'); }
+
+/* ── Selection helpers ────────────────────────*/
+function selAll()   { S.shots.forEach(s => selFrames.add(s.id));    renderFrames(); }
+function deselAll() { selFrames.clear();                              renderFrames(); }
+
+/* ── Delete selected ──────────────────────────*/
+function delSel() {
+  if (selFrames.size === 0) { showToast('Keine Frames markiert'); return; }
+  if (!confirm(`${selFrames.size} Frame(s) löschen?`)) return;
+  // Clean groups
+  selFrames.forEach(id => {
+    const s = S.shots.find(x => x.id === id);
+    if (s && s.groupId) {
+      const grp = S.groups.find(g => g.id === s.groupId);
+      if (grp) grp.frameIds = grp.frameIds.filter(fid => fid !== id);
+    }
+  });
+  S.shots = S.shots.filter(s => !selFrames.has(s.id));
+  selFrames.clear();
+  idbSaveShots(S.shots);
+  persist();
+  renderFrames(); renderStrip(); updateShotCount();
+  showToast('🗑 Gelöscht');
+}
+
+/* ── Duplicate selected ───────────────────────*/
+function dupSel() {
+  if (selFrames.size === 0) { showToast('Keine Frames markiert'); return; }
+  const toInsert = [];
+  S.shots.forEach(s => {
+    if (selFrames.has(s.id)) toInsert.push({...s, id:genShotId(), groupId:null});
+  });
+  // Insert after last selected
+  const lastIdx = S.shots.reduce((m,s,i) => selFrames.has(s.id) ? i : m, 0);
+  S.shots.splice(lastIdx + 1, 0, ...toInsert);
+  idbSaveShots(S.shots);
+  persist();
+  renderFrames(); renderStrip(); updateShotCount();
+  showToast(`📋 ${toInsert.length} Frame(s) dupliziert`);
+}
+
+/* ── Reverse all ──────────────────────────────*/
+function revFrames() {
+  S.shots.reverse();
+  idbSaveShots(S.shots);
+  renderFrames(); renderStrip();
+  showToast('↔ Reihenfolge umgekehrt');
+}
+
+/* ── Undo last frame (editor) ─────────────────*/
+function undoLastFrame() {
+  if (S.shots.length === 0) return;
+  const removed = S.shots.pop();
+  if (removed && removed.groupId) {
+    const grp = S.groups.find(g => g.id === removed.groupId);
+    if (grp) grp.frameIds = grp.frameIds.filter(id => id !== removed.id);
+  }
+  idbSaveShots(S.shots);
+  persist();
+  renderFrames(); renderStrip(); updateShotCount();
+  showToast('↩ Letzter Frame gelöscht');
+}
+
+/* ── Rotate selected ──────────────────────────*/
+function rotSel() {
+  if (selFrames.size === 0) { showToast('Keine Frames markiert'); return; }
+  let done = 0;
+  S.shots.forEach(shot => {
+    if (!selFrames.has(shot.id)) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = img.height; c.height = img.width;
+      const ctx = c.getContext('2d');
+      ctx.translate(c.width/2, c.height/2);
+      ctx.rotate(Math.PI/2);
+      ctx.drawImage(img, -img.width/2, -img.height/2);
+      shot.data = c.toDataURL('image/jpeg', 0.85);
+      done++;
+      if (done === selFrames.size) {
+        idbSaveShots(S.shots); renderFrames(); renderStrip();
+        showToast('🔄 Gedreht');
+      }
+    };
+    img.src = shot.data;
+  });
+}
+
+/* ── Groups ───────────────────────────────────*/
+function createGroup() {
+  if (selFrames.size === 0) { showToast('Keine Frames markiert'); return; }
+  const n    = S.groups.length + 1;
+  const name = `Szene ${n}`;
+  const color= GROUP_COLORS[(n-1) % GROUP_COLORS.length];
+  const id   = 'g' + Date.now();
+  const frameIds = S.shots.filter(s => selFrames.has(s.id)).map(s => s.id);
+  S.shots.forEach(s => { if (selFrames.has(s.id)) s.groupId = id; });
+  S.groups.push({ id, name, color, frameIds, voiceover:null, voiceoverDuration:0 });
+  persist();
+  renderFrames(); renderGroupBar();
+  showToast(`📁 Gruppe '${name}' erstellt (${frameIds.length} Frames)`);
+}
+
+function dissolveGroup() {
+  if (selFrames.size === 0) { showToast('Keine Frames markiert'); return; }
+  S.shots.forEach(s => {
+    if (!selFrames.has(s.id)) return;
+    if (!s.groupId) return;
+    const grp = S.groups.find(g => g.id === s.groupId);
+    if (grp) {
+      grp.frameIds = grp.frameIds.filter(id => id !== s.id);
+      if (grp.frameIds.length === 0) S.groups = S.groups.filter(g => g.id !== grp.id);
+    }
+    s.groupId = null;
+  });
+  persist();
+  renderFrames(); renderGroupBar();
+  showToast('📂 Gruppe aufgelöst');
+}
+
+function renderGroupBar() {
+  const bar   = $('group-bar');
+  const empty = $('gb-empty');
+  if (!bar) return;
+  bar.querySelectorAll('.grp-pill').forEach(p => p.remove());
+  if (S.groups.length === 0) {
+    if (empty) empty.style.display = 'block';
+    return;
+  }
+  if (empty) empty.style.display = 'none';
+  S.groups.forEach(grp => {
+    const pill = document.createElement('div');
+    pill.className = 'grp-pill';
+    pill.style.borderColor = grp.color + '55';
+    pill.style.color = grp.color;
+    const cnt  = grp.frameIds.length;
+    const voIc = grp.voiceover ? ' 🎙' : '';
+    pill.innerHTML = `
+      <span class="grp-dot" style="background:${grp.color}"></span>
+      <span class="grp-name" data-id="${grp.id}">${grp.name} (${cnt})${voIc}</span>
+      <button class="grp-del" onclick="deleteGroup('${grp.id}',event)">✕</button>
+    `;
+    // Click → select all frames
+    pill.querySelector('.grp-name').addEventListener('click', () => {
+      selFrames.clear();
+      S.shots.forEach(s => { if (s.groupId === grp.id) selFrames.add(s.id); });
+      renderFrames();
+    });
+    // Double click → rename
+    let lastTap = 0;
+    pill.addEventListener('click', () => {
+      const now = Date.now();
+      if (now - lastTap < 350) {
+        const newName = prompt('Neuer Gruppenname:', grp.name);
+        if (newName && newName.trim()) { grp.name = newName.trim(); persist(); renderGroupBar(); }
+      }
+      lastTap = now;
+    });
+    bar.appendChild(pill);
+  });
+}
+
+function deleteGroup(id, e) {
+  e.stopPropagation();
+  S.shots.forEach(s => { if (s.groupId === id) s.groupId = null; });
+  S.groups = S.groups.filter(g => g.id !== id);
+  persist();
+  renderFrames(); renderGroupBar();
+  showToast('Gruppe gelöscht');
+}
+
+/* ── Preview Player ───────────────────────────*/
+function togglePrev() {
+  if (prevRunning) stopPrev(); else startPrev();
+}
+function startPrev() {
+  if (S.shots.length === 0) return;
+  prevRunning = true; prevIdx = 0;
+  prevGroupsPlayed = new Set();
+  $('prev-play').textContent = '⏸';
+  prevStep();
+}
+function stopPrev() {
+  prevRunning = false;
+  clearTimeout(prevTimer);
+  $('prev-play').textContent = '▶';
+  // Stop any voiceover
+  const vp = $('vo-player');
+  if (vp) { vp.pause(); vp.currentTime = 0; }
+}
+function prevStep() {
+  if (!prevRunning || S.shots.length === 0) { stopPrev(); return; }
+  drawPrevFrame(S.shots[prevIdx]);
+  checkVoiceoverTrigger(prevIdx);
+  prevIdx = (prevIdx + 1) % S.shots.length;
+  prevTimer = setTimeout(prevStep, 1000 / (S.fps || 8));
+}
+function drawPrevFrame(shot) {
+  const cv  = $('prev-cv');
+  if (!cv || !shot) return;
+  const img = new Image();
+  img.onload = () => {
+    cv.width  = img.width;
+    cv.height = img.height;
+    const ctx = cv.getContext('2d');
+    const b   = brightnessVal;
+    const c   = contrastVal;
+    ctx.filter = `brightness(${1 + b/100}) contrast(${1 + c/100})`;
+    ctx.drawImage(img, 0, 0);
+    ctx.filter = 'none';
+    // Fade in/out
+    if (fadeIn && prevIdx <= Math.ceil(S.fps * 0.5) && prevIdx === 0) {
+      ctx.fillStyle = 'rgba(0,0,0,' + (1 - prevIdx / (S.fps*0.5)) + ')';
+      ctx.fillRect(0,0,cv.width,cv.height);
+    }
+    if (fadeOut && prevIdx >= S.shots.length - Math.ceil(S.fps * 0.5)) {
+      const t = (prevIdx - (S.shots.length - Math.ceil(S.fps*0.5))) / (S.fps*0.5);
+      ctx.fillStyle = `rgba(0,0,0,${Math.min(1,t)})`;
+      ctx.fillRect(0,0,cv.width,cv.height);
+    }
+  };
+  img.src = shot.data;
+}
+function showFirstFrame() {
+  if (S.shots.length > 0) drawPrevFrame(S.shots[0]);
+}
+function checkVoiceoverTrigger(idx) {
+  const shot = S.shots[idx];
+  if (!shot || !shot.groupId) return;
+  if (prevGroupsPlayed.has(shot.groupId)) return;
+  const grp = S.groups.find(g => g.id === shot.groupId);
+  if (!grp || !grp.voiceover || !grp.frameIds.length) return;
+  if (grp.frameIds[0] !== shot.id) return;
+  prevGroupsPlayed.add(shot.groupId);
+  let vp = $('vo-player');
+  if (!vp) { vp = document.createElement('audio'); vp.id='vo-player'; document.body.appendChild(vp); }
+  vp.src = grp.voiceover;
+  vp.play().catch(()=>{});
+}
+
+function togFade(which) {
+  if (which === 'in')  { fadeIn  = !fadeIn;  $('tog-fadein').classList.toggle('on',  fadeIn); }
+  if (which === 'out') { fadeOut = !fadeOut; $('tog-fadeout').classList.toggle('on', fadeOut); }
+}
+
+/* ── Voiceover Modal ──────────────────────────*/
+function openVoiceoverModal() {
+  const modal = $('vo-modal');
+  modal.classList.remove('hidden');
+  const sel = $('vo-group-sel');
+  sel.innerHTML = '';
+  if (S.groups.length === 0) {
+    $('vo-no-groups').style.display = 'block';
+    sel.style.display = 'none';
+  } else {
+    $('vo-no-groups').style.display = 'none';
+    sel.style.display = 'block';
+    S.groups.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.id; opt.textContent = g.name;
+      sel.appendChild(opt);
+    });
+  }
+  // Reset UI
+  voBlob = null;
+  $('vo-timer').textContent = '0:00';
+  $('vo-rec-btn').style.display  = 'inline-block';
+  $('vo-stop-btn').style.display = 'none';
+  $('vo-play-btn').style.display = 'none';
+  $('vo-del-btn').style.display  = 'none';
+  $('vo-save-btn').style.display = 'none';
+  $('vo-sync-info').style.display = 'none';
+  $('vo-sync-btns').style.display = 'none';
+  initVoViz();
+}
+function closeVoModal() {
+  $('vo-modal').classList.add('hidden');
+  stopVoRec();
+  cancelAnimationFrame(voRafId);
+}
+function initVoViz() {
+  const viz = $('vo-viz');
+  viz.innerHTML = '';
+  for (let i = 0; i < 20; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'vo-bar';
+    bar.style.height = '4px';
+    viz.appendChild(bar);
+  }
+}
+async function startVoRec() {
+  if (S.groups.length === 0) { showToast('Erstelle zuerst eine Gruppe'); return; }
+  try {
+    voStream = await navigator.mediaDevices.getUserMedia({audio:true});
+    const ac = new (window.AudioContext||window.webkitAudioContext)();
+    const src = ac.createMediaStreamSource(voStream);
+    voAnalyser = ac.createAnalyser();
+    voAnalyser.fftSize = 64;
+    src.connect(voAnalyser);
+    voChunks = [];
+    const mime = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+    voRecorder = new MediaRecorder(voStream, {mimeType:mime});
+    voRecorder.ondataavailable = e => voChunks.push(e.data);
+    voRecorder.onstop = () => {
+      voBlob = new Blob(voChunks, {type: voRecorder.mimeType});
+      showVoAfterRec();
+    };
+    voRecorder.start();
+    voTimerSec = 0;
+    $('vo-rec-btn').style.display  = 'none';
+    $('vo-stop-btn').style.display = 'inline-block';
+    // Timer
+    voTimerInt = setInterval(() => {
+      voTimerSec++;
+      const m = Math.floor(voTimerSec/60), s = voTimerSec%60;
+      $('vo-timer').textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    }, 1000);
+    // Visualizer
+    const bars = $('vo-viz').querySelectorAll('.vo-bar');
+    const data = new Uint8Array(voAnalyser.frequencyBinCount);
+    function vizLoop() {
+      voRafId = requestAnimationFrame(vizLoop);
+      voAnalyser.getByteFrequencyData(data);
+      bars.forEach((bar, i) => {
+        const h = Math.max(3, (data[i] || 0) / 255 * 36);
+        bar.style.height = h + 'px';
+      });
+    }
+    vizLoop();
+  } catch(e) { showToast('Kein Mikrofonzugriff'); }
+}
+function stopVoRec() {
+  if (voRecorder && voRecorder.state !== 'inactive') voRecorder.stop();
+  if (voStream) { voStream.getTracks().forEach(t => t.stop()); voStream = null; }
+  clearInterval(voTimerInt);
+  cancelAnimationFrame(voRafId);
+  $('vo-stop-btn').style.display = 'none';
+  // Reset viz bars
+  $('vo-viz').querySelectorAll('.vo-bar').forEach(b => b.style.height = '4px');
+}
+function showVoAfterRec() {
+  voAudioDuration = voTimerSec;
+  $('vo-rec-btn').style.display  = 'inline-block';
+  $('vo-play-btn').style.display = 'inline-block';
+  $('vo-del-btn').style.display  = 'inline-block';
+  $('vo-save-btn').style.display = 'block';
+  updateVoSyncInfo();
+}
+function playVoRec() {
+  if (!voBlob) return;
+  const url = URL.createObjectURL(voBlob);
+  const a = new Audio(url);
+  a.onended = () => URL.revokeObjectURL(url);
+  a.play();
+}
+function delVoRec() {
+  voBlob = null; voAudioDuration = 0;
+  $('vo-timer').textContent = '0:00';
+  $('vo-play-btn').style.display = 'none';
+  $('vo-del-btn').style.display  = 'none';
+  $('vo-save-btn').style.display = 'none';
+  $('vo-sync-info').style.display = 'none';
+  $('vo-sync-btns').style.display = 'none';
+}
+function updateVoSyncInfo() {
+  const grpId = $('vo-group-sel').value;
+  const grp   = S.groups.find(g => g.id === grpId);
+  if (!grp || !voBlob) return;
+  const grpSecs = grp.frameIds.length / (S.fps || 8);
+  const diff    = voAudioDuration - grpSecs;
+  const infoEl  = $('vo-sync-info');
+  const btnsEl  = $('vo-sync-btns');
+  infoEl.style.display = 'block';
+  infoEl.innerHTML = `Voiceover: <b>${voAudioDuration.toFixed(1)}s</b> · Gruppe hat <b>${grp.frameIds.length} Frames</b> bei ${S.fps}fps = <b>${grpSecs.toFixed(1)}s</b>`
+    + (Math.abs(diff) > 0.2 ? `<div class="vo-sync-warn">⚠️ Voiceover ist ${Math.abs(diff).toFixed(1)}s ${diff>0?'länger':'kürzer'} als die Gruppe</div>` : '<div style="color:var(--green)">✓ Passt gut!</div>');
+  btnsEl.style.display = Math.abs(diff) > 0.2 ? 'flex' : 'none';
+}
+function voAdjustFrames() {
+  const grpId = $('vo-group-sel').value;
+  const grp   = S.groups.find(g => g.id === grpId);
+  if (!grp) return;
+  const targetFrames = Math.ceil(voAudioDuration * (S.fps || 8));
+  const deficit = targetFrames - grp.frameIds.length;
+  if (deficit <= 0) { showToast('Keine Anpassung nötig'); return; }
+  // Duplicate last frame of group
+  const lastId = grp.frameIds[grp.frameIds.length - 1];
+  const lastShot = S.shots.find(s => s.id === lastId);
+  if (!lastShot) return;
+  for (let i = 0; i < deficit; i++) {
+    const newShot = {...lastShot, id: genShotId()};
+    S.shots.push(newShot);
+    grp.frameIds.push(newShot.id);
+    newShot.groupId = grpId;
+  }
+  idbSaveShots(S.shots); persist();
+  renderFrames(); renderStrip(); updateShotCount();
+  updateVoSyncInfo();
+  showToast(`⚡ ${deficit} Frames hinzugefügt`);
+}
+function voTrimAudio() { showToast('✂️ Audio wird beim Speichern auf Gruppen-Länge gesetzt'); }
+function saveVoiceover() {
+  const grpId = $('vo-group-sel').value;
+  const grp   = S.groups.find(g => g.id === grpId);
+  if (!grp || !voBlob) return;
+  // Warn if large
+  if (voBlob.size > 500000) showToast('⚠️ Voiceover ist groß (>' + Math.round(voBlob.size/1024) + 'KB)');
+  const reader = new FileReader();
+  reader.onload = e => {
+    grp.voiceover = e.target.result;
+    grp.voiceoverDuration = voAudioDuration;
+    persist();
+    renderFrames(); renderGroupBar();
+    closeVoModal();
+    showToast('🎙 Voiceover gespeichert!');
+  };
+  reader.readAsDataURL(voBlob);
+}
+
+/* ── Title Card ───────────────────────────────*/
+function insertTitleCard() {
+  $('tc-modal').classList.remove('hidden');
+  $('tc-text').value = S.project.title || '';
+  renderTcStyles();
+}
+function closeTcModal() { $('tc-modal').classList.add('hidden'); }
+function renderTcStyles() {
+  const cont = $('tc-styles'); if (!cont) return;
+  cont.innerHTML = '';
+  const bg = $('tc-bg') ? $('tc-bg').value : '#000';
+  const fg = $('tc-fg') ? $('tc-fg').value : '#fff';
+  TC_STYLES.forEach((st, i) => {
+    const el = document.createElement('div');
+    el.className = 'tc-style' + (i === tcStyleIdx ? ' active' : '');
+    el.style.background = bg; el.style.color = fg;
+    el.style.fontFamily = st.font; el.style.fontWeight = st.weight;
+    el.style.fontSize = '8px'; el.style.textAlign = st.align;
+    el.textContent = 'Aa';
+    el.addEventListener('click', () => { tcStyleIdx = i; renderTcStyles(); });
+    cont.appendChild(el);
+  });
+}
+function doInsertTitleCard() {
+  const text = ($('tc-text').value || 'Titel').trim();
+  const bg   = $('tc-bg').value;
+  const fg   = $('tc-fg').value;
+  const st   = TC_STYLES[tcStyleIdx];
+  const w = 640, h = 480;
+  const cv  = document.createElement('canvas');
+  cv.width = w; cv.height = h;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  ctx.fillStyle = fg;
+  ctx.font = `${st.weight} ${st.size}px "${st.font}"`;
+  ctx.textAlign = st.align === 'left' ? 'left' : 'center';
+  ctx.textBaseline = 'middle';
+  const x = st.align === 'left' ? 40 : w/2;
+  // Wrap text
+  const words = text.split(' ');
+  let line = '', lines = [];
+  words.forEach(word => {
+    const test = line ? line + ' ' + word : word;
+    if (ctx.measureText(test).width > w - 80) { if (line) lines.push(line); line = word; }
+    else line = test;
+  });
+  if (line) lines.push(line);
+  const lineH = st.size * 1.3;
+  const startY = h/2 - (lines.length - 1) * lineH / 2;
+  lines.forEach((l, i) => ctx.fillText(l, x, startY + i * lineH));
+  addShot(cv.toDataURL('image/jpeg', 0.9));
+  closeTcModal();
+  showToast('🖼 Titelkarte eingefügt');
+}
+
+/* ── Editor init ──────────────────────────────*/
+function initEditor() {
+  // FPS slider
+  const fpsSl = $('fps-slider');
+  if (fpsSl) {
+    fpsSl.value = S.fps;
+    $('fps-val').textContent = S.fps + ' fps';
+    fpsSl.addEventListener('input', () => {
+      S.fps = +fpsSl.value;
+      $('fps-val').textContent = S.fps + ' fps';
+      persist(); updateEditInfo();
+    });
+  }
+  // Brightness
+  const brightSl = $('bright-slider');
+  if (brightSl) {
+    brightSl.addEventListener('input', () => {
+      brightnessVal = +brightSl.value;
+      $('bright-val').textContent = brightnessVal;
+      showFirstFrame();
+    });
+  }
+  // Contrast
+  const contrastSl = $('contrast-slider');
+  if (contrastSl) {
+    contrastSl.addEventListener('input', () => {
+      contrastVal = +contrastSl.value;
+      $('contrast-val').textContent = contrastVal;
+      showFirstFrame();
+    });
+  }
+  // TC modal color pickers update previews
+  const tcBg = $('tc-bg'); const tcFg = $('tc-fg');
+  if (tcBg) tcBg.addEventListener('input', renderTcStyles);
+  if (tcFg) tcFg.addEventListener('input', renderTcStyles);
+  // Voiceover group select change
+  const voSel = $('vo-group-sel');
+  if (voSel) voSel.addEventListener('change', updateVoSyncInfo);
+  // Show first frame on tab click
+  const editTab = document.querySelector('[data-page="pg-edit"]');
+  if (editTab) editTab.addEventListener('click', () => {
+    renderFrames(); showFirstFrame();
   });
 }
 
@@ -2298,6 +3260,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initProgress();
   initDrawModal();
   initCamTab();
+  initEditor();
   initIntro();
 });
 </script>
