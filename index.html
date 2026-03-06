@@ -2004,18 +2004,43 @@ function startGsLoop() {
   const vid  = $('cam-vid');
   const gsCv = $('gs-cv');
   const box  = $('cam-box');
+
+  function coverFit(srcW, srcH, dstW, dstH) {
+    // Returns {sx,sy,sw,sh} source crop so that the result fills dst like object-fit:cover
+    const srcR = srcW / srcH;
+    const dstR = dstW / dstH;
+    let sw, sh, sx = 0, sy = 0;
+    if (srcR > dstR) {
+      sh = srcH; sw = sh * dstR; sx = (srcW - sw) / 2;
+    } else {
+      sw = srcW; sh = sw / dstR; sy = (srcH - sh) / 2;
+    }
+    return {sx, sy, sw, sh};
+  }
+
   function loop() {
     if (!gsOn) return;
-    gsCv.width  = box.offsetWidth;
-    gsCv.height = box.offsetHeight;
+    const dstW = box.offsetWidth;
+    const dstH = box.offsetHeight;
+    gsCv.width  = dstW;
+    gsCv.height = dstH;
     const ctx = gsCv.getContext('2d');
-    // Draw video frame
+
+    const vW = vid.videoWidth  || dstW;
+    const vH = vid.videoHeight || dstH;
+
+    // Work at display size to avoid distortion
     const tmp = document.createElement('canvas');
-    tmp.width  = vid.videoWidth  || gsCv.width;
-    tmp.height = vid.videoHeight || gsCv.height;
+    tmp.width  = dstW;
+    tmp.height = dstH;
     const tc = tmp.getContext('2d');
-    tc.drawImage(vid, 0, 0, tmp.width, tmp.height);
-    const id   = tc.getImageData(0, 0, tmp.width, tmp.height);
+
+    // Draw video with cover-fit crop
+    const {sx, sy, sw, sh} = coverFit(vW, vH, dstW, dstH);
+    tc.drawImage(vid, sx, sy, sw, sh, 0, 0, dstW, dstH);
+
+    // Chroma key
+    const id   = tc.getImageData(0, 0, dstW, dstH);
     const data = id.data;
     const {r:kr, g:kg, b:kb} = gsColor;
     const thresh = gsThreshold * 2.55;
@@ -2024,11 +2049,18 @@ function startGsLoop() {
       if (dr < thresh && dg < thresh && db < thresh) data[i+3] = 0;
     }
     tc.putImageData(id, 0, 0);
-    // Draw bg if set
-    if (gsBgImage) ctx.drawImage(gsBgImage, 0, 0, gsCv.width, gsCv.height);
-    else { ctx.fillStyle = '#1a1a2e'; ctx.fillRect(0,0,gsCv.width,gsCv.height); }
-    // Draw keyed frame
-    ctx.drawImage(tmp, 0, 0, gsCv.width, gsCv.height);
+
+    // Draw background (cover-fit)
+    if (gsBgImage) {
+      const {sx:bsx, sy:bsy, sw:bsw, sh:bsh} = coverFit(gsBgImage.naturalWidth, gsBgImage.naturalHeight, dstW, dstH);
+      ctx.drawImage(gsBgImage, bsx, bsy, bsw, bsh, 0, 0, dstW, dstH);
+    } else {
+      ctx.fillStyle = '#1a1a2e';
+      ctx.fillRect(0, 0, dstW, dstH);
+    }
+
+    // Composite keyed frame on top
+    ctx.drawImage(tmp, 0, 0);
     gsRafId = requestAnimationFrame(loop);
   }
   loop();
