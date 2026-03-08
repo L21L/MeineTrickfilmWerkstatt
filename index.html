@@ -6,7 +6,13 @@
 <meta name="theme-color" content="#060914"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Trickfilm"/>
+<meta name="description" content="Stop-Motion Trickfilm App für Kinder"/>
+<meta name="mobile-web-app-capable" content="yes"/>
 <title>Meine Trickfilm Werkstatt</title>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet"/>
@@ -921,127 +927,154 @@ textarea.field-input{min-height:80px;line-height:1.5}
    ═══════════════════════════ */
 #pg-cam{display:none;flex-direction:column;gap:0}
 #pg-cam.active{display:flex}
-/* ck-cam fills the entire center stage */
-#ck-cam{display:none!important;position:absolute;inset:0;background:#000;overflow:hidden}
-#ck-cam.active{display:block!important}
 
-/* Camera fills entire ck-cam */
-#cam-box{position:absolute;inset:0;background:#000;overflow:hidden}
-#cam-box.portrait{position:absolute;inset:0}
+/* ck-cam: flex column — 3 zones stack: viewfinder | adj-toggle | adj-panel | shoot-bar */
+#ck-cam{display:none!important;position:absolute;inset:0;background:#0a0d14;
+  flex-direction:column;overflow:hidden}
+#ck-cam.active{display:flex!important}
+
+/* ── Zone 1: Viewfinder — grows to fill available space ── */
+#cam-vf-wrap{
+  position:relative;flex:1;min-height:0;
+  display:flex;align-items:center;justify-content:center;
+  background:#0a0d14;overflow:visible}
+/* cam-box: sized by JS to exact crop ratio */
+#cam-box{position:relative;flex-shrink:0;background:#000;overflow:hidden}
 #cam-vid{width:100%;height:100%;object-fit:cover;display:block}
 #onion-cv,#gs-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 #cam-grid{position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .2s;
-  background-image:
-    linear-gradient(rgba(255,255,255,.5) .5px,transparent .5px),
-    linear-gradient(90deg,rgba(255,255,255,.5) .5px,transparent .5px);
+  background-image:linear-gradient(rgba(255,255,255,.4) .5px,transparent .5px),
+    linear-gradient(90deg,rgba(255,255,255,.4) .5px,transparent .5px);
   background-size:33.33% 33.33%}
 #cam-grid.on{opacity:1}
-#cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;
-  transition:opacity .05s}
-#shot-cnt{position:absolute;top:12px;left:14px;background:rgba(6,9,20,.65);
-  color:#fff;font-family:'Fredoka One',cursive;font-size:14px;padding:6px 14px;
-  border-radius:99px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,.12);z-index:22;pointer-events:none}
-#scene-progress-bar{position:absolute;top:12px;right:14px;background:rgba(6,9,20,.65);
-  color:#fff;font-family:'Fredoka One',cursive;font-size:12px;padding:6px 10px;
-  border-radius:12px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  border:1px solid rgba(255,255,255,.12);
-  display:flex;flex-direction:column;align-items:flex-end;gap:4px;z-index:22;pointer-events:none}
-.spb-track{width:90px;height:5px;background:rgba(255,255,255,.2);border-radius:3px;overflow:hidden}
-.spb-fill{height:100%;background:var(--yellow);border-radius:3px;transition:width .3s}
+#cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .05s}
 #cam-countdown{position:absolute;inset:0;display:flex;align-items:center;
-  justify-content:center;pointer-events:none;z-index:10}
+  justify-content:center;pointer-events:none;z-index:30}
 .cd-num{font-family:'Fredoka One',cursive;font-size:96px;color:#fff;
-  text-shadow:0 4px 24px rgba(0,0,0,.8);opacity:0;transform:scale(1.5);
-  animation:cdPop .8s ease forwards}
+  text-shadow:0 4px 24px rgba(0,0,0,.8);opacity:0;transform:scale(1.5);animation:cdPop .8s ease forwards}
 @keyframes cdPop{0%{opacity:0;transform:scale(1.5)}40%{opacity:1;transform:scale(1)}
   80%{opacity:1;transform:scale(.9)}100%{opacity:0;transform:scale(.8)}}
-#motion-warn{position:absolute;top:60px;left:50%;transform:translateX(-50%);
+#motion-warn{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
   background:rgba(239,68,68,.88);color:#fff;font-family:'Fredoka One',cursive;
   font-size:13px;padding:7px 18px;border-radius:99px;pointer-events:none;
-  opacity:0;transition:opacity .3s;white-space:nowrap;backdrop-filter:blur(6px)}
+  opacity:0;transition:opacity .3s;white-space:nowrap;backdrop-filter:blur(6px);z-index:25}
 #motion-warn.show{opacity:1}
 #cam-fallback{position:absolute;inset:0;display:flex;flex-direction:column;
   align-items:center;justify-content:center;background:#0d1117;gap:10px;padding:20px;text-align:center}
 .cam-fallback-icon{font-size:48px}
 .cam-fallback-title{font-family:'Fredoka One',cursive;font-size:18px;color:var(--text)}
 .cam-fallback-sub{font-size:13px;color:var(--muted);line-height:1.5}
-
-/* ── Camera Overlay Controls ── */
-/* Top toolbar: feature toggles */
+/* HUD badges */
+#shot-cnt{position:absolute;top:10px;left:10px;background:rgba(6,9,20,.65);
+  color:#fff;font-family:'Fredoka One',cursive;font-size:13px;padding:5px 12px;
+  border-radius:99px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12);z-index:22;pointer-events:none}
+#scene-progress-bar{position:absolute;top:10px;right:10px;background:rgba(6,9,20,.65);
+  color:#fff;font-family:'Fredoka One',cursive;font-size:11px;padding:5px 9px;
+  border-radius:10px;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  border:1px solid rgba(255,255,255,.12);display:flex;flex-direction:column;
+  align-items:flex-end;gap:3px;z-index:22;pointer-events:none}
+.spb-track{width:80px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;overflow:hidden}
+.spb-fill{height:100%;background:var(--yellow);border-radius:2px;transition:width .3s}
+/* Toggle chips overlay */
 #cam-overlay-top{position:absolute;top:0;left:0;right:0;z-index:20;
-  padding:52px 10px 10px;/* below shot-cnt / progress */
-  pointer-events:none}
-.cam-controls{padding:0;display:flex;flex-direction:column;gap:8px;flex-shrink:0;pointer-events:all}
-.cam-row1{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;
-  flex-wrap:nowrap}
+  padding:44px 8px 8px;pointer-events:none}
+.cam-controls{padding:0;display:flex;flex-direction:column;gap:6px;flex-shrink:0;pointer-events:all}
+.cam-row1{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;flex-wrap:nowrap}
 .cam-row1::-webkit-scrollbar{display:none}
-/* Glass toggle chips */
-.cch{flex-shrink:0;
-  background:rgba(6,9,20,.55);
-  border:1px solid rgba(255,255,255,.18);
-  color:rgba(255,255,255,.85);
-  font-family:'Fredoka One',cursive;font-size:13px;
-  padding:9px 14px;border-radius:20px;
-  transition:all .2s;white-space:nowrap;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  min-height:40px}
+.cch{flex-shrink:0;background:rgba(6,9,20,.6);border:1px solid rgba(255,255,255,.18);
+  color:rgba(255,255,255,.85);font-family:'Fredoka One',cursive;font-size:12px;
+  padding:7px 12px;border-radius:18px;transition:all .2s;white-space:nowrap;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);min-height:36px}
 .cch.on{background:rgba(251,191,36,.25);border-color:rgba(251,191,36,.7);color:var(--yellow)}
 .cch:active{transform:scale(.94)}
-
-/* Timelapse / Greenscreen panels float below top toolbar */
-#tl-panel{
-  background:rgba(6,9,20,.7);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);
-  padding:12px;margin:8px 10px 0;display:none;flex-shrink:0;
+/* Timelapse / Greenscreen glass panels */
+#tl-panel{background:rgba(6,9,20,.75);border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--r);padding:10px 12px;margin:6px 8px 0;display:none;flex-shrink:0;
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 #tl-panel.open{display:block}
 .tl-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
 .tl-label{font-size:12px;color:rgba(255,255,255,.7);flex-shrink:0}
 .tl-slider{flex:1;min-width:80px;accent-color:var(--yellow)}
-.tl-val{font-family:'Fredoka One',cursive;font-size:14px;color:var(--yellow);
-  min-width:30px;text-align:right}
+.tl-val{font-family:'Fredoka One',cursive;font-size:14px;color:var(--yellow);min-width:30px;text-align:right}
 .tl-btns{display:flex;gap:8px}
-
-#gs-panel{
-  background:rgba(6,9,20,.7);border:1px solid rgba(255,255,255,.12);border-radius:var(--r);
-  padding:12px;margin:8px 10px 0;display:none;flex-shrink:0;
+#gs-panel{background:rgba(6,9,20,.75);border:1px solid rgba(255,255,255,.12);
+  border-radius:var(--r);padding:10px 12px;margin:6px 8px 0;display:none;flex-shrink:0;
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
 #gs-panel.open{display:block}
 .gs-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
 .gs-label{font-size:12px;color:rgba(255,255,255,.7);flex-shrink:0}
-.gs-preset{width:30px;height:30px;border-radius:50%;border:2px solid transparent;
-  cursor:pointer;transition:border-color .2s;flex-shrink:0}
+.gs-preset{width:28px;height:28px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border-color .2s;flex-shrink:0}
 .gs-preset.active{border-color:var(--yellow)}
 .gs-thresh-slider{flex:1;min-width:80px;accent-color:var(--yellow)}
 
-/* ── Bottom shoot area: floating over video ── */
-#cam-overlay-bottom{position:absolute;bottom:0;left:0;right:0;z-index:20;
-  padding:16px 12px 20px;
-  background:linear-gradient(to top, rgba(6,9,20,.75) 0%, transparent 100%);
-  display:flex;flex-direction:column;gap:12px}
+/* ── Zone 2a: Portrait-mode adj toggle tab ── */
+#cam-adj-toggle{
+  flex-shrink:0;width:100%;
+  display:none;/* JS shows in portrait */
+  background:rgba(15,20,35,.97);
+  border-top:1px solid rgba(255,255,255,.08);
+  padding:8px 14px;
+  color:rgba(255,255,255,.55);font-size:12px;font-family:'Fredoka One',cursive;
+  text-align:center;cursor:pointer;transition:color .2s,background .2s;
+  letter-spacing:.3px}
+#cam-adj-toggle:hover{color:rgba(255,255,255,.8);background:rgba(30,40,60,.97)}
+#cam-adj-toggle:active{color:var(--yellow)}
 
-/* Shoot row */
-.cam-shoot-row{display:flex;align-items:center;justify-content:center;
-  gap:20px;flex-shrink:0}
-#shoot-btn{width:88px;height:88px;border-radius:50%;
+/* ── Zone 2b: Adjustment panel ── */
+#cam-adj-panel{
+  flex-shrink:0;overflow:hidden;
+  background:rgba(6,9,20,.96);
+  border-top:1px solid rgba(255,255,255,.06);
+  /* landscape: always visible */
+  max-height:200px;
+  transition:max-height .3s ease}
+/* portrait: collapsed by default */
+#ck-cam.portrait-mode #cam-adj-panel{max-height:0}
+#ck-cam.portrait-mode #cam-adj-panel.portrait-open{max-height:180px}
+/* also hide toggle in landscape */
+#ck-cam:not(.portrait-mode) #cam-adj-toggle{display:none!important}
+#ck-cam.portrait-mode #cam-adj-toggle{display:block}
+
+#cam-adj-inner{padding:8px 14px 10px;display:flex;flex-direction:column;gap:5px}
+.adj-row{display:flex;align-items:center;gap:8px}
+.adj-icon{font-size:14px;flex-shrink:0;width:18px;text-align:center}
+.adj-label{font-size:11px;color:rgba(255,255,255,.45);font-family:'Fredoka One',cursive;
+  flex-shrink:0;width:34px}
+.adj-slider{flex:1;accent-color:var(--yellow);cursor:pointer}
+.adj-val{font-family:'Fredoka One',cursive;font-size:11px;color:var(--yellow);
+  min-width:30px;text-align:right}
+.adj-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 14px}
+/* Mini filmstrip row */
+#cam-mini-strip{display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;
+  padding:6px 14px 4px;align-items:center;flex-shrink:0;min-height:51px}
+#cam-mini-strip::-webkit-scrollbar{display:none}
+.cam-mini-thumb{width:44px;height:33px;border-radius:5px;object-fit:cover;
+  flex-shrink:0;border:2px solid transparent;transition:border-color .15s;cursor:pointer;background:#111}
+.cam-mini-thumb:last-child{border-color:rgba(251,191,36,.6)}
+
+/* ── Zone 3: Shoot bar ── */
+#cam-overlay-bottom{
+  flex-shrink:0;display:flex;flex-direction:column;gap:8px;
+  padding:10px 12px 14px;
+  background:rgba(6,9,20,.98);border-top:1px solid rgba(255,255,255,.08)}
+.cam-shoot-row{display:flex;align-items:center;justify-content:center;gap:18px}
+#shoot-btn{
+  width:80px;height:80px;border-radius:50%;
   background:linear-gradient(135deg,#fbbf24,#f59e0b);
-  font-size:36px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 6px 32px rgba(251,191,36,.6);transition:transform .12s,box-shadow .12s;
-  flex-shrink:0;position:relative;overflow:visible;
-  border:4px solid rgba(255,255,255,.3)}
-#shoot-btn:active{transform:scale(.88);box-shadow:0 2px 12px rgba(251,191,36,.3)}
-.cam-row2{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.cam-action-btn{
-  background:rgba(6,9,20,.55);border:1px solid rgba(255,255,255,.18);
-  color:rgba(255,255,255,.9);
-  font-family:'Fredoka One',cursive;font-size:13px;padding:10px 18px;
-  border-radius:22px;transition:all .2s;white-space:nowrap;
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
-  min-height:44px}
-.cam-action-btn:hover{border-color:rgba(251,191,36,.6);color:var(--yellow)}
+  font-size:34px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 28px rgba(251,191,36,.55);
+  transition:transform .12s,box-shadow .12s;
+  flex-shrink:0;border:3px solid rgba(255,255,255,.25)}
+#shoot-btn:active{transform:scale(.88);box-shadow:0 2px 10px rgba(251,191,36,.3)}
+.cam-row2{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+.cam-action-btn{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);
+  color:rgba(255,255,255,.85);font-family:'Fredoka One',cursive;font-size:12px;
+  padding:9px 15px;border-radius:20px;transition:all .2s;white-space:nowrap;min-height:40px}
+.cam-action-btn:hover{border-color:rgba(251,191,36,.5);color:var(--yellow)}
 .cam-action-btn:active{transform:scale(.94)}
 
-/* Filmstrip (original in camera - hidden, timeline used instead) */
+/* Filmstrip (original – hidden, timeline used instead) */
 #filmstrip-wrap{display:none}
 #filmstrip{display:flex;gap:6px;overflow-x:auto;padding:6px 10px;
   align-items:stretch;flex:1;scrollbar-width:thin;
@@ -1337,22 +1370,21 @@ textarea.field-input{min-height:80px;line-height:1.5}
   from{transform:scale(0);opacity:.5}
   to{transform:scale(3);opacity:0}
 }
-/* Shoot button pulse ring - fixed circular */
+/* Shoot button pulse ring - sized relative to button */
+#shoot-btn{position:relative;overflow:visible}
 #shoot-btn::after {
   content:'';
   position:absolute;
-  width:72px;height:72px;
-  top:50%;left:50%;
-  transform:translate(-50%,-50%) scale(1);
+  inset:-6px;
   border-radius:50%;
   border:3px solid rgba(251,191,36,.6);
   animation:shootRing 2s ease-out infinite;
   pointer-events:none;
 }
 @keyframes shootRing {
-  0%  { transform:translate(-50%,-50%) scale(1);   opacity:.7; }
-  70% { transform:translate(-50%,-50%) scale(1.6); opacity:0; }
-  100%{ transform:translate(-50%,-50%) scale(1.6); opacity:0; }
+  0%  { transform:scale(1);   opacity:.7; }
+  70% { transform:scale(1.5); opacity:0; }
+  100%{ transform:scale(1.5); opacity:0; }
 }
 /* Nav tab entry animation on load */
 .bottom-nav .nav-tab {
@@ -1971,90 +2003,126 @@ textarea.field-input{min-height:80px;line-height:1.5}
   <!-- KAMERA -->
   <section id="pg-cam" class="page" aria-label="Kamera">
 
-    <!-- Full-screen Camera Box -->
-    <div id="cam-box">
-      <video id="cam-vid" autoplay playsinline muted></video>
-      <canvas id="onion-cv"></canvas>
-      <canvas id="gs-cv" style="display:none"></canvas>
-      <div id="cam-grid"></div>
-      <div id="cam-flash"></div>
-      <div id="cam-countdown"></div>
-      <div id="motion-warn">⚠️ Zu viel Bewegung!</div>
-      <!-- Fallback if no camera -->
-      <div id="cam-fallback" style="display:none">
-        <div class="cam-fallback-icon">📷</div>
-        <div class="cam-fallback-title">Keine Kamera verfügbar</div>
-        <div class="cam-fallback-sub">Bitte erlaube den Kamerazugriff oder nutze einen anderen Browser.</div>
-      </div>
-    </div>
-
-    <!-- HUD: top-left shot counter & top-right progress -->
-    <div id="shot-cnt">0 Fotos</div>
-    <div id="scene-progress-bar">
-      <span id="spb-label">Szene 1 · 0/12</span>
-      <div class="spb-track"><div class="spb-fill" id="spb-fill" style="width:0%"></div></div>
-    </div>
-
-    <!-- TOP OVERLAY: Feature toggle chips -->
-    <div id="cam-overlay-top">
-      <div class="cam-controls">
-        <div class="cam-row1">
-          <button class="cch" id="btn-swcam"   onclick="swCam()">🔄 Wechseln</button>
-          <button class="cch" id="btn-format"  onclick="togFormat()">📐 Querformat</button>
-          <button class="cch" id="btn-grid"    onclick="togGrid()">⊞ Raster</button>
-          <button class="cch" id="btn-onion"   onclick="togOnion()">🧅 Zwiebelhaut</button>
-          <button class="cch" id="btn-timer"   onclick="togTimer()">⏱ Timer</button>
-          <button class="cch" id="btn-tl"      onclick="togTimelapse()">⚡ Zeitraffer</button>
-          <button class="cch" id="btn-motion"  onclick="togMotion()">👁 Bewegung</button>
-          <button class="cch" id="btn-gs"      onclick="togGreenScreen()">🟢 Greenscreen</button>
-          <button class="cch" id="btn-exp"     onclick="togExposureLock()">🔓 Belichtung</button>
+    <!-- ── Viewfinder: exact crop ratio ── -->
+    <div id="cam-vf-wrap">
+      <div id="cam-box">
+        <video id="cam-vid" autoplay playsinline muted></video>
+        <canvas id="onion-cv"></canvas>
+        <canvas id="gs-cv" style="display:none"></canvas>
+        <div id="cam-grid"></div>
+        <div id="cam-flash"></div>
+        <div id="cam-countdown"></div>
+        <div id="motion-warn">⚠️ Zu viel Bewegung!</div>
+        <div id="cam-fallback" style="display:none">
+          <div class="cam-fallback-icon">📷</div>
+          <div class="cam-fallback-title">Keine Kamera verfügbar</div>
+          <div class="cam-fallback-sub">Bitte erlaube den Kamerazugriff.</div>
         </div>
-        <!-- Timelapse Panel -->
-        <div id="tl-panel">
-          <div class="tl-row">
-            <span class="tl-label">Intervall:</span>
-            <input type="range" class="tl-slider" id="tl-slider" min="1" max="10" value="2"/>
-            <span class="tl-val" id="tl-val">2s</span>
-          </div>
-          <div class="tl-btns">
-            <button class="btn-primary sm" id="tl-start-btn" onclick="startTimelapse()">▶ Starten</button>
-            <button class="cam-action-btn" id="tl-stop-btn" onclick="stopTimelapse()" style="display:none">⏹ Stoppen</button>
-            <span class="tl-label" id="tl-count" style="margin-left:auto;color:var(--yellow)"></span>
-          </div>
+        <!-- HUD badges -->
+        <div id="shot-cnt">0 Fotos</div>
+        <div id="scene-progress-bar">
+          <span id="spb-label">Szene 1 · 0/12</span>
+          <div class="spb-track"><div class="spb-fill" id="spb-fill" style="width:0%"></div></div>
         </div>
-        <!-- Greenscreen Panel -->
-        <div id="gs-panel">
-          <div class="gs-row">
-            <span class="gs-label">Farbe:</span>
-            <div class="gs-preset active" id="gs-green" style="background:#00ff00" title="Grün" onclick="setGsColor('green')"></div>
-            <div class="gs-preset" id="gs-blue" style="background:#0000ff" title="Blau" onclick="setGsColor('blue')"></div>
-            <input type="color" id="gs-custom" value="#00ff00" title="Eigene Farbe"
-              style="width:30px;height:30px;border:none;border-radius:50%;cursor:pointer;padding:0"
-              onchange="setGsColorHex(this.value)"/>
-            <button id="gs-eyedropper" onclick="startGsEyedropper()"
-              style="background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.5);color:var(--yellow);
-              border-radius:20px;padding:6px 12px;font-size:12px;font-family:'Fredoka One',cursive;cursor:pointer"
-              title="Farbe aus Kamerabild aufnehmen">💉 Pick</button>
-          </div>
-          <div class="gs-row">
-            <span class="gs-label">Toleranz:</span>
-            <input type="range" class="gs-thresh-slider" id="gs-thresh" min="0" max="100" value="40"/>
-            <span class="tl-val" id="gs-thresh-val">40</span>
-          </div>
-          <div class="gs-row" style="align-items:flex-start;flex-direction:column;gap:6px">
-            <span class="gs-label">Hintergrund:</span>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-              <button class="cam-action-btn" onclick="pickGsBg()" style="font-size:12px;padding:7px 12px">📁 Eigenes Bild</button>
-              <input type="file" id="gs-bg-input" accept="image/*" style="display:none" onchange="loadGsBg(this)"/>
+        <!-- Toggle chips overlay (top) -->
+        <div id="cam-overlay-top">
+          <div class="cam-controls">
+            <div class="cam-row1">
+              <button class="cch" id="btn-swcam"  onclick="swCam()">🔄 Wechseln</button>
+              <button class="cch" id="btn-format" onclick="togFormat()">📐 Querformat</button>
+              <button class="cch" id="btn-grid"   onclick="togGrid()">⊞ Raster</button>
+              <button class="cch" id="btn-onion"  onclick="togOnion()">🧅 Zwiebelhaut</button>
+              <button class="cch" id="btn-timer"  onclick="togTimer()">⏱ Timer</button>
+              <button class="cch" id="btn-tl"     onclick="togTimelapse()">⚡ Zeitraffer</button>
+              <button class="cch" id="btn-motion" onclick="togMotion()">👁 Bewegung</button>
+              <button class="cch" id="btn-gs"     onclick="togGreenScreen()">🟢 Greenscreen</button>
+              <button class="cch" id="btn-exp"    onclick="togExposureLock()">🔓 Belichtung</button>
             </div>
-            <div id="gs-bg-lib" style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;width:100%"></div>
-            <span class="tl-label" id="gs-bg-label" style="color:var(--green);font-size:11px"></span>
+            <!-- Timelapse Panel -->
+            <div id="tl-panel">
+              <div class="tl-row">
+                <span class="tl-label">Intervall:</span>
+                <input type="range" class="tl-slider" id="tl-slider" min="1" max="10" value="2"/>
+                <span class="tl-val" id="tl-val">2s</span>
+              </div>
+              <div class="tl-btns">
+                <button class="btn-primary sm" id="tl-start-btn" onclick="startTimelapse()">▶ Starten</button>
+                <button class="cam-action-btn" id="tl-stop-btn" onclick="stopTimelapse()" style="display:none">⏹ Stoppen</button>
+                <span class="tl-label" id="tl-count" style="margin-left:auto;color:var(--yellow)"></span>
+              </div>
+            </div>
+            <!-- Greenscreen Panel -->
+            <div id="gs-panel">
+              <div class="gs-row">
+                <span class="gs-label">Farbe:</span>
+                <div class="gs-preset active" id="gs-green" style="background:#00ff00" title="Grün" onclick="setGsColor('green')"></div>
+                <div class="gs-preset" id="gs-blue" style="background:#0000ff" title="Blau" onclick="setGsColor('blue')"></div>
+                <input type="color" id="gs-custom" value="#00ff00" style="width:28px;height:28px;border:none;border-radius:50%;cursor:pointer;padding:0" onchange="setGsColorHex(this.value)"/>
+                <button id="gs-eyedropper" onclick="startGsEyedropper()"
+                  style="background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.5);color:var(--yellow);border-radius:18px;padding:5px 11px;font-size:12px;font-family:'Fredoka One',cursive;cursor:pointer">💉 Pick</button>
+              </div>
+              <div class="gs-row">
+                <span class="gs-label">Toleranz:</span>
+                <input type="range" class="gs-thresh-slider" id="gs-thresh" min="0" max="100" value="40"/>
+                <span class="tl-val" id="gs-thresh-val">40</span>
+              </div>
+              <div class="gs-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                <span class="gs-label">Hintergrund:</span>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                  <button class="cam-action-btn" onclick="pickGsBg()" style="font-size:11px;padding:5px 10px">📁 Eigenes Bild</button>
+                  <input type="file" id="gs-bg-input" accept="image/*" style="display:none" onchange="loadGsBg(this)"/>
+                </div>
+                <div id="gs-bg-lib" style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;width:100%"></div>
+                <span class="tl-label" id="gs-bg-label" style="color:var(--green);font-size:11px"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- end #cam-vf-wrap -->
+
+    <!-- ── Portrait toggle tab (flex sibling, shown only in portrait via CSS/JS) ── -->
+    <button id="cam-adj-toggle" onclick="toggleCamAdj()">⚙️ Regler ▾</button>
+
+    <!-- ── Adjustment panel ── -->
+    <div id="cam-adj-panel">
+      <!-- Mini filmstrip: last shots -->
+      <div id="cam-mini-strip"></div>
+      <div id="cam-adj-inner">
+        <div class="adj-grid">
+          <div class="adj-row">
+            <span class="adj-icon">☀️</span>
+            <span class="adj-label">Hell.</span>
+            <input type="range" class="adj-slider" id="adj-bri" min="-100" max="100" value="0"
+              oninput="updateCamAdj()"/>
+            <span class="adj-val" id="adj-bri-val">0</span>
+          </div>
+          <div class="adj-row">
+            <span class="adj-icon">◑</span>
+            <span class="adj-label">Kontr.</span>
+            <input type="range" class="adj-slider" id="adj-con" min="-100" max="100" value="0"
+              oninput="updateCamAdj()"/>
+            <span class="adj-val" id="adj-con-val">0</span>
+          </div>
+          <div class="adj-row">
+            <span class="adj-icon">🔍</span>
+            <span class="adj-label">Zoom</span>
+            <input type="range" class="adj-slider" id="adj-zoom" min="100" max="300" value="100"
+              oninput="updateCamAdj()"/>
+            <span class="adj-val" id="adj-zoom-val">1×</span>
+          </div>
+          <div class="adj-row">
+            <span class="adj-icon">🌡️</span>
+            <span class="adj-label">Weiß</span>
+            <input type="range" class="adj-slider" id="adj-wb" min="-50" max="50" value="0"
+              oninput="updateCamAdj()"/>
+            <span class="adj-val" id="adj-wb-val">0</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- BOTTOM OVERLAY: Shoot button + action buttons -->
+    <!-- ── Shoot controls ── -->
     <div id="cam-overlay-bottom">
       <div class="cam-row2">
         <button class="cam-action-btn" onclick="undoShot()">↩ Rückgängig</button>
@@ -2067,7 +2135,7 @@ textarea.field-input{min-height:80px;line-height:1.5}
       </div>
     </div>
 
-    <!-- Filmstrip (hidden – shown in permanent bottom timeline) -->
+    <!-- Filmstrip (hidden – permanent timeline used instead) -->
     <div id="filmstrip-wrap">
       <div id="filmstrip">
         <span class="strip-empty" id="strip-empty">Noch keine Fotos – drück auf 📷</span>
@@ -2801,7 +2869,7 @@ function ckGoMode(mode) {
   const target = $('ck-' + mode);
   if (target) target.classList.add('active');
   // Trigger cam init if switching to cam
-  if (mode === 'cam') { try { if (typeof camStream !== 'undefined' && !camStream) initCam(); } catch(e){} }
+  if (mode === 'cam') { try { if (typeof camStream !== 'undefined' && !camStream) initCam(); sizeCamViewfinder(); } catch(e){} }
   try { playSwoosh(); } catch(e){}
 }
 
@@ -4076,6 +4144,10 @@ function checkOnboarding() {
 let camStream       = null;
 let camFacing       = 'environment';
 let camAspect       = '4/3'; // '4/3' = Querformat, '3/4' = Hochformat
+let camBrightness   = 0;   // -100…+100
+let camContrast     = 0;   // -100…+100
+let camZoom         = 100; // 100…300 (%)
+let camWB           = 0;   // -50…+50
 let onionOn         = false;
 let timerOn         = false;
 let tlActive        = false;
@@ -4252,6 +4324,8 @@ async function initCam() {
     });
     vid.srcObject = stream;
     camStream = stream;
+    // Size viewfinder to exact crop ratio once video metadata is ready
+    vid.addEventListener('loadedmetadata', () => { sizeCamViewfinder(); applyCamFilter(); }, {once:true});
     // Hide fallback if shown
     const fb = $('cam-fallback');
     if (fb) fb.style.display = 'none';
@@ -4287,25 +4361,119 @@ function swCam() {
 
 /* ── Format Umschalten ──────────────────────── */
 function togFormat() {
-  const box = $('cam-box');
-  const btn = $('btn-format');
+  const box    = $('cam-box');
+  const btn    = $('btn-format');
+  const ckCam  = $('ck-cam');
   if (camAspect === '4/3') {
-    // Wechsel zu Hochformat
     camAspect = '3/4';
     box.classList.add('portrait');
-    box.style.setProperty('--cam-aspect', '3/4');
     btn.textContent = '📐 Hochformat';
     btn.classList.add('on');
+    if (ckCam) ckCam.classList.add('portrait-mode');
   } else {
-    // Wechsel zu Querformat
     camAspect = '4/3';
     box.classList.remove('portrait');
-    box.style.setProperty('--cam-aspect', '4/3');
     btn.textContent = '📐 Querformat';
     btn.classList.remove('on');
+    if (ckCam) { ckCam.classList.remove('portrait-mode'); $('cam-adj-panel').classList.remove('portrait-open'); }
   }
-  // Zwiebelhaut neu zeichnen
+  sizeCamViewfinder();
   if (onionOn) drawOnion();
+}
+
+/* ── Viewfinder: match cam-vf-wrap height so cam-box fills exact ratio ── */
+function sizeCamViewfinder() {
+  const wrap      = $('cam-vf-wrap');
+  const box       = $('cam-box');
+  const ckCam     = $('ck-cam');
+  if (!wrap || !box || !ckCam) return;
+
+  const [arW, arH] = camAspect.split('/').map(Number);
+  const isPortrait  = (arW < arH);
+
+  // Total space available in ck-cam
+  const totalW = ckCam.clientWidth  || window.innerWidth;
+  const totalH = ckCam.clientHeight || window.innerHeight;
+
+  // Measure fixed zones (adj-toggle + adj-panel + shoot-bar)
+  const adjToggle = $('cam-adj-toggle');
+  const adjPanel  = $('cam-adj-panel');
+  const shootBar  = $('cam-overlay-bottom');
+  const fixedH = (adjToggle ? adjToggle.offsetHeight : 0)
+               + (adjPanel  ? adjPanel.offsetHeight  : 0)
+               + (shootBar  ? shootBar.offsetHeight  : 0);
+
+  const availH = Math.max(totalH - fixedH, 80);
+  const availW = totalW;
+
+  // Fit cam-box into available space maintaining aspect ratio
+  let boxW, boxH;
+  if (availW / availH > arW / arH) {
+    // Height-constrained
+    boxH = availH;
+    boxW = boxH * arW / arH;
+  } else {
+    // Width-constrained
+    boxW = availW;
+    boxH = boxW * arH / arW;
+  }
+
+  boxW = Math.floor(boxW);
+  boxH = Math.floor(boxH);
+
+  wrap.style.height = boxH + 'px';
+  box.style.width   = boxW + 'px';
+  box.style.height  = boxH + 'px';
+}
+
+/* ── Adj-Panel toggle (portrait mode) ── */
+function toggleCamAdj() {
+  const panel = $('cam-adj-panel');
+  const btn   = $('cam-adj-toggle');
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('portrait-open');
+  if (btn) btn.textContent = isOpen ? '⚙️ Regler ▴' : '⚙️ Regler ▾';
+}
+
+/* ── Live-Regler: CSS-Filter auf Video + Zoom per transform ── */
+function updateCamAdj() {
+  const briEl  = $('adj-bri');
+  const conEl  = $('adj-con');
+  const zoomEl = $('adj-zoom');
+  const wbEl   = $('adj-wb');
+  if (briEl)  { camBrightness = +briEl.value;  $('adj-bri-val').textContent = (camBrightness >= 0 ? '+' : '') + camBrightness; }
+  if (conEl)  { camContrast   = +conEl.value;   $('adj-con-val').textContent = (camContrast   >= 0 ? '+' : '') + camContrast; }
+  if (zoomEl) { camZoom       = +zoomEl.value;  $('adj-zoom-val').textContent = (camZoom/100).toFixed(1) + '×'; }
+  if (wbEl)   { camWB         = +wbEl.value;    $('adj-wb-val').textContent  = (camWB >= 0 ? '+' : '') + camWB; }
+  applyCamFilter();
+}
+
+function applyCamFilter() {
+  const vid = $('cam-vid');
+  if (!vid) return;
+  const bri  = 1 + camBrightness / 100;   // 0…2
+  const con  = 1 + camContrast   / 100;   // 0…2
+  const hue  = camWB * 0.5;               // subtle hue-rotate for white-balance feel
+  vid.style.filter    = `brightness(${bri.toFixed(3)}) contrast(${con.toFixed(3)}) hue-rotate(${hue.toFixed(1)}deg)`;
+  vid.style.transform = `scale(${(camZoom/100).toFixed(3)})`;
+  vid.style.transformOrigin = 'center center';
+}
+
+/* ── Mini filmstrip: last 5 shots ── */
+function renderCamMiniStrip() {
+  const strip = $('cam-mini-strip');
+  if (!strip) return;
+  strip.innerHTML = '';
+  const last5 = S.shots.slice(-5);
+  last5.forEach((shot, i) => {
+    const img = document.createElement('img');
+    img.className = 'cam-mini-thumb';
+    img.src = shot.data || shot;
+    img.title = `Foto ${S.shots.length - last5.length + i + 1}`;
+    strip.appendChild(img);
+  });
+  // Auto-scroll to end
+  strip.scrollLeft = strip.scrollWidth;
 }
 
 /* ── Raster ─────────────────────────────────── */
@@ -4629,11 +4797,15 @@ function togExposureLock() {
     for (let i=0;i<d.length;i+=4) lum += (d[i]*299+d[i+1]*587+d[i+2]*114)/1000;
     lum /= (d.length/4);
     const target = 128, bri = Math.min(2, Math.max(0.2, target/Math.max(lum,1)));
-    vid.style.filter = `brightness(${bri.toFixed(2)})`;
+    // Merge with existing adj filters
+    camBrightness = Math.round((bri - 1) * 100);
+    const briEl = $('adj-bri');
+    if (briEl) { briEl.value = camBrightness; $('adj-bri-val').textContent = (camBrightness >= 0?'+':'') + camBrightness; }
+    applyCamFilter();
     btn.classList.add('on');
     btn.textContent = '🔒 Belichtung';
   } else {
-    vid.style.filter = '';
+    applyCamFilter();
     btn.classList.remove('on');
     btn.textContent = '🔓 Belichtung';
   }
@@ -4674,9 +4846,42 @@ function doSnap() {
     dstW = vW;
     dstH = Math.round(dstW / targetR);
   }
-  // Cropkoordinaten im Videobild (zentriert)
-  const cropX = Math.round((vW - dstW) / 2);
-  const cropY = Math.round((vH - dstH) / 2);
+  // Cropkoordinaten im Videobild (zentriert) — zoom berücksichtigen
+  // Digital zoom: sample a smaller region from video center
+  const zoomFactor = camZoom / 100;
+  const sampW = Math.round(dstW / zoomFactor);
+  const sampH = Math.round(dstH / zoomFactor);
+  const sampX = Math.round((vW - sampW) / 2);
+  const sampY = Math.round((vH - sampH) / 2);
+  // (legacy cropX/cropY kept for non-zoom path)
+  const cropX = sampX;
+  const cropY = sampY;
+
+  // Helper: bake CSS-style brightness/contrast/hue-rotate into canvas pixel data
+  function bakeFilters(ctx2d, w, h) {
+    if (camBrightness === 0 && camContrast === 0 && camWB === 0) return;
+    const imgd = ctx2d.getImageData(0, 0, w, h);
+    const d = imgd.data;
+    const bri = 1 + camBrightness / 100;
+    const con = 1 + camContrast   / 100;
+    const wbR = 1 + camWB * 0.003;   // warm shift → more red
+    const wbB = 1 - camWB * 0.003;   // warm shift → less blue
+    for (let i = 0; i < d.length; i += 4) {
+      let r = d[i], g = d[i+1], b = d[i+2];
+      // Brightness
+      r = r * bri; g = g * bri; b = b * bri;
+      // Contrast (pivot at 128)
+      r = (r - 128) * con + 128;
+      g = (g - 128) * con + 128;
+      b = (b - 128) * con + 128;
+      // White balance
+      r = r * wbR; b = b * wbB;
+      d[i]   = Math.max(0, Math.min(255, Math.round(r)));
+      d[i+1] = Math.max(0, Math.min(255, Math.round(g)));
+      d[i+2] = Math.max(0, Math.min(255, Math.round(b)));
+    }
+    ctx2d.putImageData(imgd, 0, 0);
+  }
 
   function coverFitSnap(srcW, srcH, dstW, dstH) {
     const srcR = srcW / srcH, dstR = dstW / dstH;
@@ -4694,7 +4899,8 @@ function doSnap() {
     const tmp = document.createElement('canvas');
     tmp.width = dstW; tmp.height = dstH;
     const tc = tmp.getContext('2d');
-    tc.drawImage(vid, cropX, cropY, dstW, dstH, 0, 0, dstW, dstH);
+    tc.drawImage(vid, cropX, cropY, sampW, sampH, 0, 0, dstW, dstH);
+    bakeFilters(tc, dstW, dstH);
 
     const imgData = tc.getImageData(0, 0, dstW, dstH);
     const data = imgData.data;
@@ -4791,8 +4997,9 @@ function doSnap() {
           ctx.drawImage(bgImg, sx, sy, sw, sh, 0, 0, dstW, dstH);
         }
       }
-      // Video auf Zielgröße zuschneiden (Mitte des Videobilds)
-      ctx.drawImage(vid, cropX, cropY, dstW, dstH, 0, 0, dstW, dstH);
+      // Video auf Zielgröße zuschneiden — zoom-korrigierter Sample-Bereich
+      ctx.drawImage(vid, cropX, cropY, sampW, sampH, 0, 0, dstW, dstH);
+      bakeFilters(ctx, dstW, dstH);
       addShot(cv.toDataURL('image/jpeg', 0.88), false);
     }
 
@@ -4831,6 +5038,7 @@ function addShot(dataUrl, isTransparent) {
   renderStrip();
   updateShotCount();
   renderFrames();
+  renderCamMiniStrip();
   if (onionOn) drawOnion();
   // Animate strip thumb
   const thumbs = document.querySelectorAll('.strip-thumb');
@@ -8006,6 +8214,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 }, { once: true });
 
+// Resize + orientation: re-fit viewfinder
+let _camSizeTimer = null;
+function _debouncedCamSize() {
+  clearTimeout(_camSizeTimer);
+  _camSizeTimer = setTimeout(() => { try { sizeCamViewfinder(); } catch(e) {} }, 80);
+}
+window.addEventListener('resize', _debouncedCamSize);
+window.addEventListener('orientationchange', () => setTimeout(_debouncedCamSize, 200));
+
 /* ═══════════════════════════════════════════════
    RETUSCHE MODAL
    ═══════════════════════════════════════════════ */
@@ -8733,6 +8950,15 @@ function switchLegalTab(tab,btn){
   document.querySelectorAll('.legal-tab').forEach(b=>b.classList.remove('active'));
   document.getElementById('legal-'+tab).classList.add('active');
   btn.classList.add('active');
+}
+
+// ── PWA Service Worker Registration ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW registered:', reg.scope))
+      .catch(err => console.log('SW error:', err));
+  });
 }
 </script>
 </body>
